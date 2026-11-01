@@ -139,7 +139,9 @@ Checked against real USA and EU ROMs with `check` and `compare-fs`.
 1. Sprite blocks end in a 4-byte terminator, not 2.
 2. Map16 words address the BG VRAM shared by the three tilesets, so a tile can use another set's chars and palettes. Atlases are therefore extracted per tileset combination, not per tileset.
 3. Object tile references are global across the sets, and the extended flag is an offset inside a set; cells keep their slot explicitly.
-4. **Open:** many placed common-tileset tiles have an all-zero Map16 entry, including pipe shafts. Some may be collision-only, but pipes are visible in the game, so at least part of them is filled in by code at load time. Finding that code is reverse engineering, not a parser fix. Cells and behaviours are correct either way.
+4. **Pipes are not BG graphics.** They are drawn as textured 3D quads (`polygon_unit/I_dokan.nsbtx`, 28 16x16 textures, 3 colour palettes) over tiles with behaviour `0x0101xxxx`, so their Map16 entries are blank. Behaviour low byte: bits 6-7 colour, bit 5 collision variant, bits 0-4 piece. The piece to texture map (`PipeArt`) is inferred from texture names, object definitions and level layouts, not read from the code, and is checked by renders. Pieces `10 12 18 1A 1C 1D` and `30 32 38 3A 3C-3F` are invisible collision shapes. Junction tiles need the tile number, not just the behaviour. Pieces `31 33 35 37` are not placed in any level and stay unmapped.
+   **Open:** code `3F` (common tiles `7C 7D 8C 8D 95`, used by object 59 at pipe hubs and where pipes meet) is treated as invisible, which leaves a hole at four-way hubs. Compare with the game.
+5. Other `polygon_unit` textures follow the same idea (water, lava, poison, quicksand, fences, pillars, mini pipes) and are not drawn yet. They need the same mapping work and probably belong with tile logic (M5) or level mechanics (M7).
 
 ## 9. Changelog
 - v1: initial plan.

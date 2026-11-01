@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using NsmbRom;
 using NsmbRom.Compression;
+using NsmbRom.Imaging;
 using NsmbRom.Nds;
+using NsmbRom.Nitro;
 
 namespace NsmbExtractor {
     /// <summary>Writes raw and decompressed ROM contents for reverse engineering. Output belongs in RomAnalysis/.</summary>
@@ -51,6 +53,31 @@ namespace NsmbExtractor {
 
             File.WriteAllLines(Path.Combine(outDir, "overlays.txt"), listing);
             Console.WriteLine($"Wrote ARM9, ARM7 and {rom.Overlays.Count} overlays to {outDir}");
+        }
+
+        /// <summary>Writes every polygon_unit texture once per palette, with a listing of names and sizes.</summary>
+        public static void DumpTextures(NdsRom rom, string outDir) {
+            const string folder = "polygon_unit/";
+            Directory.CreateDirectory(outDir);
+            List<string> listing = new();
+            foreach (string path in rom.FileSystem.ByPath.Keys.Where(p => p.StartsWith(folder, StringComparison.Ordinal)).OrderBy(p => p, StringComparer.Ordinal)) {
+                string unit = Path.GetFileNameWithoutExtension(path);
+                Nsbtx nsbtx = Nsbtx.Parse(rom.GetFileData(path).ToArray());
+                listing.Add($"{unit}: palettes {string.Join(" ", nsbtx.Palettes.Select(p => $"{p.Name}({p.Size / 2})"))}");
+                foreach (NsbtxTexture texture in nsbtx.Textures) {
+                    listing.Add($"  {texture.Name} {texture.Width}x{texture.Height} format {texture.Format}{(texture.Color0Transparent ? " transparent0" : "")}");
+                    foreach (NsbtxPalette palette in nsbtx.Palettes) {
+                        byte[]? rgba = nsbtx.Decode(texture, palette);
+                        if (rgba == null) {
+                            continue;
+                        }
+                        using FileStream file = File.Create(Path.Combine(outDir, $"{unit}.{texture.Name}.{palette.Name}.png"));
+                        PngWriter.Write(file, rgba, texture.Width, texture.Height);
+                    }
+                }
+            }
+            File.WriteAllLines(Path.Combine(outDir, "textures.txt"), listing);
+            Console.WriteLine($"Wrote textures to {outDir}");
         }
 
         private static void WriteFile(string root, string relativePath, ReadOnlySpan<byte> data) {

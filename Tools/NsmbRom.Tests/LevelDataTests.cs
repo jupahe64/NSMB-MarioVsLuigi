@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using NsmbRom.Imaging;
+using NsmbRom.Nitro;
 using NsmbRom.Nsmb;
 using Xunit;
 
@@ -195,6 +196,64 @@ namespace NsmbRom.Tests {
             blocks[5] = new byte[19];
 
             Assert.Throws<RomFormatException>(() => LevelArea.Parse("T", BuildLevel(blocks), Array.Empty<byte>()));
+        }
+    }
+
+    public class NsbtxTests {
+        private static byte[] BuildNsbtx() {
+            const int tex0 = 0x14;
+            const int info = 0x40;
+            const int textureData = 0x70;
+            const int paletteInfo = 0x90;
+            const int paletteData = 0xC0;
+            byte[] file = new byte[tex0 + paletteData + 8];
+
+            "BTX0"u8.CopyTo(file);
+            BinaryPrimitives.WriteInt32LittleEndian(file.AsSpan(0x10), tex0);
+            "TEX0"u8.CopyTo(file.AsSpan(tex0));
+            BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(tex0 + 0x0E), info);
+            BinaryPrimitives.WriteInt32LittleEndian(file.AsSpan(tex0 + 0x14), textureData);
+            BinaryPrimitives.WriteInt32LittleEndian(file.AsSpan(tex0 + 0x30), 1);
+            BinaryPrimitives.WriteInt32LittleEndian(file.AsSpan(tex0 + 0x34), paletteInfo);
+            BinaryPrimitives.WriteInt32LittleEndian(file.AsSpan(tex0 + 0x38), paletteData);
+
+            WriteDictionary(file, tex0 + info, "tex", (0 | (0u << 20) | (0u << 23) | (3u << 26) | (1u << 29)));
+            WriteDictionary(file, tex0 + paletteInfo, "pal", 0);
+
+            // 8x8 16-colour texture: first pixel index 1, second index 0, rest 0.
+            file[tex0 + textureData] = 0x01;
+            BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(tex0 + paletteData + 2), 0x001F);
+            return file;
+        }
+
+        private static void WriteDictionary(byte[] file, int dictionary, string name, uint entry) {
+            file[dictionary + 1] = 1;
+            const int headerOffset = 0x10;
+            BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(dictionary + 6), headerOffset);
+            BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(dictionary + headerOffset), 8);
+            BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(dictionary + headerOffset + 2), 12);
+            BinaryPrimitives.WriteUInt32LittleEndian(file.AsSpan(dictionary + headerOffset + 4), entry);
+            System.Text.Encoding.ASCII.GetBytes(name).CopyTo(file, dictionary + headerOffset + 12);
+        }
+
+        [Fact]
+        public void ReadsDictionariesAndDecodes16ColourTexture() {
+            Nsbtx nsbtx = Nsbtx.Parse(BuildNsbtx());
+            NsbtxTexture texture = Assert.Single(nsbtx.Textures);
+
+            Assert.Equal("tex", texture.Name);
+            Assert.Equal(8, texture.Width);
+            Assert.Equal(3, texture.Format);
+            Assert.True(texture.Color0Transparent);
+
+            byte[] rgba = nsbtx.Decode(texture, nsbtx.Palettes[0])!;
+            Assert.Equal(new byte[] { 255, 0, 0, 255 }, rgba[..4]);
+            Assert.Equal(0, rgba[7]);
+        }
+
+        [Fact]
+        public void RefusesWrongMagic() {
+            Assert.Throws<RomFormatException>(() => Nsbtx.Parse(new byte[0x100]));
         }
     }
 

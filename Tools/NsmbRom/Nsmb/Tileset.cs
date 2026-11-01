@@ -84,6 +84,13 @@ namespace NsmbRom.Nsmb {
                     ushort word = BinaryPrimitives.ReadUInt16LittleEndian(map16.AsSpan((tile * Map16TileBytes) + (quadrant * 2)));
                     DrawChar(vram, rgba, width, originX + ((quadrant & 1) * CharPixels), originY + ((quadrant >> 1) * CharPixels), word);
                 }
+
+                byte[]? pipe = tile < Behaviors.Length ? vram.Pipes.GetTile(Slot, tile, Behaviors[tile]) : null;
+                if (pipe != null) {
+                    for (int y = 0; y < TilePixels; y++) {
+                        Buffer.BlockCopy(pipe, y * TilePixels * 4, rgba, (((originY + y) * width) + originX) * 4, TilePixels * 4);
+                    }
+                }
             }
             return rgba;
         }

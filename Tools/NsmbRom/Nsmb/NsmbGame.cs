@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NsmbRom.Compression;
 using NsmbRom.Nds;
+using NsmbRom.Nitro;
 
 namespace NsmbRom.Nsmb {
     /// <summary>The expanded Map16 grid of an area. Cell 0 is empty, otherwise the tileset slot in bits 12+ and the Map16 index below.</summary>
@@ -47,12 +48,14 @@ namespace NsmbRom.Nsmb {
         public Tileset Level { get; }
         public Tileset Sub { get; }
         public int CommonVariant { get; }
+        public PipeArt Pipes { get; }
 
-        public AreaTilesets(Tileset common, int commonVariant, Tileset level, Tileset sub) {
+        public AreaTilesets(Tileset common, int commonVariant, Tileset level, Tileset sub, PipeArt pipes) {
             Common = common;
             CommonVariant = commonVariant;
             Level = level;
             Sub = sub;
+            Pipes = pipes;
         }
 
         public Tileset this[TilesetSlot slot] => slot switch {
@@ -82,6 +85,7 @@ namespace NsmbRom.Nsmb {
         private readonly Dictionary<int, Tileset> levelTilesets = new();
         private readonly Tileset?[] commonTilesets = new Tileset?[CommonVariantCount];
         private Tileset? subTileset;
+        private PipeArt? pipeArt;
 
         public NdsRom Rom { get; }
         public RomRegion Region { get; }
@@ -122,7 +126,8 @@ namespace NsmbRom.Nsmb {
 
         public AreaTilesets GetTilesets(LevelArea area) {
             int variant = GetCommonVariant(area.BackgroundScreen);
-            return new AreaTilesets(GetCommonTileset(variant), variant, GetLevelTileset(area.Settings.Tileset), GetSubTileset());
+            pipeArt ??= new PipeArt(Nsbtx.Parse(ReadPlain(Named("I_dokan.nsbtx"))));
+            return new AreaTilesets(GetCommonTileset(variant), variant, GetLevelTileset(area.Settings.Tileset), GetSubTileset(), pipeArt);
         }
 
         public LevelGrid ExpandArea(LevelArea area, AreaTilesets tilesets) {

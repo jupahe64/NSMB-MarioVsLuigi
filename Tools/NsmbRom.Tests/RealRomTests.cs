@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NsmbRom.Nds;
+using NsmbRom.Nitro;
 using NsmbRom.Nsmb;
 using Xunit;
 
@@ -53,6 +54,24 @@ namespace NsmbRom.Tests {
         [RomFact("NSMB_EU_DUMP.nds")]
         public void AllEuAreasExceptTheExcludedOneExpand() {
             AssertAreasExpand("NSMB_EU_DUMP.nds", 190);
+        }
+
+        [RomFact("NSMB_USA.nds")]
+        public void PipeArtResolvesPiecesColoursAndInvisibleFillers() {
+            byte[] texture = LoadRom("NSMB_USA.nds").GetFileData("polygon_unit/I_dokan.nsbtx").ToArray();
+            PipeArt pipes = new(Nsbtx.Parse(texture));
+
+            byte[]? green = pipes.GetTile(TilesetSlot.Common, 0x9E, 0x01010004);
+            byte[]? greenSolidVariant = pipes.GetTile(TilesetSlot.Common, 0x74, 0x01010024);
+            byte[]? red = pipes.GetTile(TilesetSlot.Common, 0xCE, 0x01010084);
+
+            Assert.NotNull(green);
+            Assert.Equal(green, greenSolidVariant);
+            Assert.NotNull(red);
+            Assert.NotEqual(green, red);
+            Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x7C, 0x0101003F));
+            Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x20, 0x00010000));
+            Assert.NotEqual(pipes.GetTile(TilesetSlot.Common, 0x78, 0x01010026), pipes.GetTile(TilesetSlot.Common, 0x88, 0x01010026));
         }
 
         private static void AssertAreasExpand(string fileName, int areas) {
