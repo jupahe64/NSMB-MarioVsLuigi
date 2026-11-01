@@ -8,7 +8,7 @@ using NsmbRom.Nsmb;
 using Xunit;
 
 namespace NsmbRom.Tests {
-    public class ObjectDefinitionTests {
+    public class TileObjectDefinitionTests {
         private static byte[] Tile(byte control, int low, int high = 0) {
             return new[] { control, (byte) low, (byte) high };
         }
@@ -37,7 +37,7 @@ namespace NsmbRom.Tests {
         public void WithoutRepeatFlagsTheWholeDefinitionTiles() {
             byte[] data = Join(Tile(0, 1), Tile(0, 2), 0xFE, Tile(0, 3), Tile(0, 4), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(3, 3);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(3, 3);
 
             Assert.Equal("1,2,1", Row(block, 0));
             Assert.Equal("3,4,3", Row(block, 1));
@@ -48,7 +48,7 @@ namespace NsmbRom.Tests {
         public void RepeatFlagsGiveHeadTiledMiddleAndTail() {
             byte[] data = Join(Tile(0, 1), Tile(1, 2), Tile(0, 3), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(5, 1);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(5, 1);
 
             Assert.Equal("1,2,2,2,3", Row(block, 0));
         }
@@ -57,7 +57,7 @@ namespace NsmbRom.Tests {
         public void VerticalRepeatUsesFirstTileOfEachRow() {
             byte[] data = Join(Tile(0, 1), 0xFE, Tile(2, 2), 0xFE, Tile(0, 3), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(1, 4);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(1, 4);
 
             Assert.Equal(new[] { "1", "2", "2", "3" }, new[] { Row(block, 0), Row(block, 1), Row(block, 2), Row(block, 3) });
         }
@@ -66,14 +66,14 @@ namespace NsmbRom.Tests {
         public void ZeroTileIsAnEmptyCell() {
             byte[] data = Join(Tile(0, 0), 0xFE, 0xFF);
 
-            Assert.Equal(ObjectDefinition.EmptyCell, ObjectDefinition.Parse(data, 0).Render(1, 1)[0, 0]);
+            Assert.Equal(TileObjectDefinition.EmptyCell, TileObjectDefinition.Parse(data, 0).Render(1, 1)[0, 0]);
         }
 
         [Fact]
         public void TilesKeepTheirTilesetAcrossTheGlobalNumbering() {
             byte[] data = Join(Tile(0, 5, 1), Tile(0, 6, 4), Tile(0x40, 7), Tile(0x40, 8, 1), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(4, 1);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(4, 1);
 
             Assert.Equal(TilesetSlot.Level, LevelGrid.SplitCell(block[0, 0], out int level));
             Assert.Equal(5, level);
@@ -89,7 +89,7 @@ namespace NsmbRom.Tests {
         public void SlopeClimbsFromBottomLeft() {
             byte[] data = Join(0x80, Tile(0, 1), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(3, 3);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(3, 3);
 
             Assert.Equal("-2,-2,1", Row(block, 0));
             Assert.Equal("-2,1,-2", Row(block, 1));
@@ -100,7 +100,7 @@ namespace NsmbRom.Tests {
         public void SlopeGoingLeftClimbsFromBottomRight() {
             byte[] data = Join(0x81, Tile(0, 1), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(2, 2);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(2, 2);
 
             Assert.Equal("1,-2", Row(block, 0));
             Assert.Equal("-2,1", Row(block, 1));
@@ -110,7 +110,7 @@ namespace NsmbRom.Tests {
         public void SlopeSubBlockSitsUnderTheMainBlock() {
             byte[] data = Join(0x80, Tile(0, 1), 0xFE, 0x85, Tile(4, 2), 0xFE, 0xFF);
 
-            int[,] block = ObjectDefinition.Parse(data, 0).Render(2, 3);
+            int[,] block = TileObjectDefinition.Parse(data, 0).Render(2, 3);
 
             Assert.Equal("-2,-2", Row(block, 0));
             Assert.Equal("-2,1", Row(block, 1));

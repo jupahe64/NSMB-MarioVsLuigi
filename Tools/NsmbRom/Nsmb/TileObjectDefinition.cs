@@ -6,7 +6,7 @@ namespace NsmbRom.Nsmb {
     /// Tileset object definitions: the recipes that turn one 10-byte level record into a block of Map16 cells.
     /// Cell values are described on <see cref="LevelGrid"/>.
     /// </summary>
-    public sealed class ObjectDefinition {
+    public sealed class TileObjectDefinition {
         public const int EmptyCell = -1;
         public const int KeepCell = -2;
 
@@ -34,7 +34,7 @@ namespace NsmbRom.Nsmb {
 
         private readonly List<List<Tile>> rows;
 
-        private ObjectDefinition(List<List<Tile>> rows) {
+        private TileObjectDefinition(List<List<Tile>> rows) {
             this.rows = rows;
         }
 
@@ -52,7 +52,7 @@ namespace NsmbRom.Nsmb {
             }
         }
 
-        public static ObjectDefinition Parse(ReadOnlySpan<byte> data, int offset) {
+        public static TileObjectDefinition Parse(ReadOnlySpan<byte> data, int offset) {
             List<List<Tile>> rows = new();
             List<Tile> row = new();
             int pos = offset;
@@ -79,7 +79,7 @@ namespace NsmbRom.Nsmb {
                 int extended = (control & ExtendedTileFlag) != 0 ? ExtendedTileOffset : 0;
                 row.Add(new Tile(control, low == 0 && high == 0 ? EmptyCell : LevelGrid.MakeCell(low | (high << 8), extended)));
             }
-            return new ObjectDefinition(rows);
+            return new TileObjectDefinition(rows);
         }
 
         /// <summary>Lays the object out in a width x height block; returns cell values or Empty/Keep markers.</summary>

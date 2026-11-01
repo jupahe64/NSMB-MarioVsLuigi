@@ -84,10 +84,10 @@ Sizes are relative: S ≈ one focused session, M ≈ a few, L ≈ many, XL = lon
 **M2 – Tilesets + levels + census (M–L).** Tileset graphics/palettes/Map16/object definitions/behaviours; level blocks; tile-object expansion incl. slopes; entrances/views/zones/sprites/paths; index of all ~190 areas; PNG renders of every area (contact sheet); census report.
 *Done when:* all areas extract from both ROMs, `verify` is clean, rendered area PNGs match what you know of the game, census report exists.
 
-**M3 – Editor import + debug level select (M).** *(v2: the viewer is the Unity Editor itself.)* Editor importer generates tile assets, palettes and one scene/prefab per area (FG/BG Tilemaps, entrance/sprite/zone/view GameObjects with gizmos); committed scene `NSMBDS_DebugSelect` with a small in-game world/level/area list (read from the generated index) and a free-fly/view-aware camera. **Debug tile overlay**: every Map16 tile tinted + labelled by behaviour class (solid, semisolid, slope types, water/lava, coin, ? block + content, brick, pipe, door, spikes …), entrances/sprites/zones/views as gizmos.
+**M3 – Editor import + debug level select (M).** *(v2: the viewer is the Unity Editor itself.)* Editor importer generates tile assets from the **real extracted atlases** and one scene/prefab per area (Tilemaps, entrance/sprite/zone/view GameObjects with gizmos); committed scene `NSMBDS_DebugSelect` with a small in-game world/level/area list (read from the generated index) and a free-fly/view-aware camera. *(v4: levels show their real tile graphics. Behaviour is an optional toggleable overlay for inspection, not the main view.)* Tiles whose art the game draws another way and that are not mapped yet (water, lava, fences and similar) get a simple placeholder until they are.
 *Done when:* every area can be opened from the list and looks right (static, no animation yet).
 
-**M4 – Player + tile collision + warps (L).** Mario's walk/run/jump/crouch/swim/slope physics and tile collision derived from disassembly (placeholder visuals); spawn at entrances; **pipes (all 4 directions, mini, connected mini), doors, area transitions via DestArea/DestEntrance**, pipe-exit and door-exit behaviours, camera views/zones, death pit, debug HUD (position, velocity, tile under feet, behaviour word). ? blocks / bricks are **solid debug tiles** for now.
+**M4 – Player + tile collision + warps (L).** Mario's walk/run/jump/crouch/swim/slope physics and tile collision derived from disassembly (placeholder visuals); spawn at entrances; **pipes (all 4 directions, mini, connected mini), doors, area transitions via DestArea/DestEntrance**, pipe-exit and door-exit behaviours, camera views/zones, death pit, debug HUD (position, velocity, tile under feet, behaviour word). ? blocks / bricks keep their real graphics and act as plain solids until M5.
 *Done when:* an automated "entrance graph" check passes for all areas (every entrance resolves to an existing destination) and you can manually walk through the pipes/doors of every world.
 
 ### Phase 2 — Real interaction
@@ -111,7 +111,7 @@ Sizes are relative: S ≈ one focused session, M ≈ a few, L ≈ many, XL = lon
 
 ## 7. Decisions from the user's review (2026-11-01)
 1. Separate MonoBehaviour layer; online multiplayer / Quantum is given up. MvL scripts and scenes get deleted once everything is ported.
-2. "Debug tiles" = colour/label overlay by tile behaviour; blocks are plain solids until M5.
+2. Levels use real tile graphics from M3 on; a colour/label behaviour overlay is an optional inspection toggle. Blocks are plain solids until M5.
 3. Float physics at fixed 60 Hz is fine; tunable and easy to experiment with.
 4. Scope = the entire single-player campaign. No Mario vs Luigi / Vs / wireless.
 5. Ghidra is in `C:\Users\jupah\Tools`, DeSmuME in `C:\Users\jupah\Documents\Nds-hacking`; newer versions may be downloaded if that works without user input.
@@ -149,3 +149,4 @@ Checked against real USA and EU ROMs with `check` and `compare-fs`.
 - v1: initial plan.
 - v2: review answers applied (D2, D4, D5, D7, M3, section 7).
 - v3: M1 verification results (section 8).
+- v4: M3 and M4 use real tile graphics instead of debug tiles; behaviour overlay is optional.

@@ -146,7 +146,7 @@ namespace NsmbRom.Nsmb {
                     continue;
                 }
 
-                ObjectDefinition? definition = tilesets[slot].GetObject(placed.Id);
+                TileObjectDefinition? definition = tilesets[slot].GetObject(placed.Id);
                 if (definition == null || !definition.IsRenderable) {
                     grid.MissingObjects++;
                     continue;
@@ -159,7 +159,7 @@ namespace NsmbRom.Nsmb {
                 for (int x = 0; x < placed.Width; x++) {
                     for (int y = 0; y < placed.Height; y++) {
                         int cell = block[x, y];
-                        if (cell != ObjectDefinition.KeepCell) {
+                        if (cell != TileObjectDefinition.KeepCell) {
                             grid.Set(placed.X + x, placed.Y + y, (ushort) Math.Max(cell, 0));
                         }
                     }

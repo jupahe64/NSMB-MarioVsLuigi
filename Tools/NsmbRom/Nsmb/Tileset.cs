@@ -29,7 +29,7 @@ namespace NsmbRom.Nsmb {
         private readonly byte[] graphics;
         private readonly byte[] palettes;
         private readonly byte[] map16;
-        private readonly ObjectDefinition?[] objects;
+        private readonly TileObjectDefinition?[] objects;
 
         public TilesetSlot Slot { get; }
         public uint[] Behaviors { get; }
@@ -53,10 +53,10 @@ namespace NsmbRom.Nsmb {
                 Behaviors[i] = BinaryPrimitives.ReadUInt32LittleEndian(behaviors.AsSpan(i * 4));
             }
 
-            objects = new ObjectDefinition?[Math.Min(objectIndex.Length / ObjectIndexEntryBytes, MaxObjects)];
+            objects = new TileObjectDefinition?[Math.Min(objectIndex.Length / ObjectIndexEntryBytes, MaxObjects)];
             for (int i = 0; i < objects.Length; i++) {
                 int offset = BinaryPrimitives.ReadUInt16LittleEndian(objectIndex.AsSpan(i * ObjectIndexEntryBytes));
-                objects[i] = ObjectDefinition.Parse(objectData, offset);
+                objects[i] = TileObjectDefinition.Parse(objectData, offset);
             }
         }
 
@@ -65,7 +65,7 @@ namespace NsmbRom.Nsmb {
             return BinaryPrimitives.ReadUInt64LittleEndian(map16.AsSpan(tile * Map16TileBytes)) == 0;
         }
 
-        public ObjectDefinition? GetObject(int id) {
+        public TileObjectDefinition? GetObject(int id) {
             return id >= 0 && id < objects.Length ? objects[id] : null;
         }
 
