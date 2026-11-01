@@ -15,8 +15,14 @@ namespace NsmbExtractor {
               NsmbExtractor dump-fs <rom.nds> [outDir]
               NsmbExtractor dump-overlays <rom.nds> [outDir]
               NsmbExtractor compare-fs <a.nds> <b.nds>
-            Default outDir: RomAnalysis/<rom name>/{fs,code}
+              NsmbExtractor extract <rom.nds> [outDir]
+              NsmbExtractor render <rom.nds> [outDir]
+              NsmbExtractor census <rom.nds> [outFile]
+              NsmbExtractor verify <usa.nds> <eu.nds>
+            Default outDir: RomAnalysis/<rom name>/{fs,code,renders}, or Assets/NSMBDS/Extracted for extract
             """;
+
+        private const string DefaultExtractDir = "Assets/NSMBDS/Extracted";
 
         public static int Main(string[] args) {
             return (args.FirstOrDefault(), args.Length) switch {
@@ -25,6 +31,10 @@ namespace NsmbExtractor {
                 ("dump-fs", 2 or 3) => RunGuarded(() => Dumper.DumpFileSystem(LoadRom(args[1]), OutDir(args, "fs"))),
                 ("dump-overlays", 2 or 3) => RunGuarded(() => Dumper.DumpOverlays(LoadRom(args[1]), OutDir(args, "code"))),
                 ("compare-fs", 3) => RunGuarded(() => RomComparer.Compare(LoadRom(args[1]), LoadRom(args[2]))),
+                ("extract", 2 or 3) => RunGuarded(() => Extractor.Extract(LoadGame(args[1]), Path.GetFileName(args[1]), args.Length == 3 ? args[2] : DefaultExtractDir)),
+                ("render", 2 or 3) => RunGuarded(() => Extractor.Render(LoadGame(args[1]), OutDir(args, "renders"))),
+                ("census", 2 or 3) => RunGuarded(() => RunCensus(args)),
+                ("verify", 3) => RunGuarded(() => RegionVerifier.Report(LoadGame(args[1]), LoadGame(args[2]))),
                 _ => PrintUsage(),
             };
         }
@@ -52,6 +62,16 @@ namespace NsmbExtractor {
 
         private static NdsRom LoadRom(string path) {
             return NdsRom.Load(File.ReadAllBytes(path));
+        }
+
+        private static NsmbGame LoadGame(string path) {
+            return new NsmbGame(LoadRom(path));
+        }
+
+        private static void RunCensus(string[] args) {
+            string path = OutDir(args, "census.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            Census.Write(LoadGame(args[1]), path);
         }
 
         private static string OutDir(string[] args, string kind) {

@@ -79,6 +79,13 @@ namespace NsmbRom.Nsmb {
             return report;
         }
 
+        /// <summary>Resolves a table entry to its file; null for the "no file" value.</summary>
+        internal static NitroFile? GetTableFile(NdsRom rom, byte[] overlay0, NsmbRegionProfile profile, Overlay0Table table, int id) {
+            uint entry = BinaryPrimitives.ReadUInt32LittleEndian(overlay0.AsSpan(profile.TableOffsets[table] + (id * 4)));
+            int fileId = (int) (entry & 0xFFFF) + profile.FileIdBase;
+            return fileId < rom.FileSystem.Files.Count ? rom.FileSystem.Files[fileId] : null;
+        }
+
         private static void CheckFiles(NdsRom rom, RomCheckReport report) {
             foreach (NitroFile file in rom.FileSystem.Files) {
                 if (file.Path == null) {

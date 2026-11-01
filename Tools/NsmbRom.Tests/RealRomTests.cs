@@ -45,6 +45,31 @@ namespace NsmbRom.Tests {
             Assert.All(report.Problems, p => Assert.StartsWith("overlay 65", p));
         }
 
+        [RomFact("NSMB_USA.nds")]
+        public void AllUsaAreasExpandWithinTheirTilesets() {
+            AssertAreasExpand("NSMB_USA.nds", 190);
+        }
+
+        [RomFact("NSMB_EU_DUMP.nds")]
+        public void AllEuAreasExceptTheExcludedOneExpand() {
+            AssertAreasExpand("NSMB_EU_DUMP.nds", 190);
+        }
+
+        private static void AssertAreasExpand(string fileName, int areas) {
+            NsmbGame game = new(LoadRom(fileName));
+
+            Assert.Equal(areas, game.AreaNames.Count);
+            Assert.DoesNotContain("F11_3", game.AreaNames);
+            foreach (string name in game.AreaNames) {
+                LevelArea area = game.LoadArea(name);
+                AreaTilesets tilesets = game.GetTilesets(area);
+                foreach (ushort cell in game.ExpandArea(area, tilesets).Cells) {
+                    TilesetSlot slot = LevelGrid.SplitCell(cell, out int tile);
+                    Assert.True(tile < tilesets[slot].TileCount, $"{name}: tile {tile} is outside tileset {slot}");
+                }
+            }
+        }
+
         private static NdsRom LoadRom(string fileName) {
             return NdsRom.Load(File.ReadAllBytes(RomPaths.Find(fileName)!));
         }

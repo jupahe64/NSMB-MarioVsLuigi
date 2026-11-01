@@ -10,8 +10,14 @@ dotnet run --project Tools/NsmbExtractor -- check Roms/<rom>.nds
 dotnet run --project Tools/NsmbExtractor -- dump-fs Roms/<rom>.nds [outDir]
 dotnet run --project Tools/NsmbExtractor -- dump-overlays Roms/<rom>.nds [outDir]
 dotnet run --project Tools/NsmbExtractor -- compare-fs Roms/<a>.nds Roms/<b>.nds
+dotnet run --project Tools/NsmbExtractor -- extract Roms/<rom>.nds [outDir]
+dotnet run --project Tools/NsmbExtractor -- render Roms/<rom>.nds [outDir]
+dotnet run --project Tools/NsmbExtractor -- census Roms/<rom>.nds [outFile]
+dotnet run --project Tools/NsmbExtractor -- verify Roms/<usa>.nds Roms/<eu>.nds
 dotnet test Tools/NsmbTools.sln
 ```
+
+`extract` writes to `Assets/NSMBDS/Extracted/` by default (gitignored): `levels/*.json`, `levels/*.map16` (512x256 little-endian u16 cells: tileset slot in bits 12+, Map16 index below, 0 = empty), `levels/index.json`, `tilesets/set_<tileset>_<variant>/{common,level,sub}.png` + `.behaviors`, `manifest.json`.
 
 `check` validates every format assumption and fails on an inconsistent or edited ROM. Dumps default to `RomAnalysis/<rom name>/`.
 

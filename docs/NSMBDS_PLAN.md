@@ -135,6 +135,12 @@ Checked against real USA and EU ROMs with `check` and `compare-fs`.
 
 **Decisions:** USA is the source of level data. EU ROMs stay accepted and extract their own data. The EU-only area `F11_3` is left out for now. M2's `verify` reports regional differences instead of expecting none.
 
+### M2 findings
+1. Sprite blocks end in a 4-byte terminator, not 2.
+2. Map16 words address the BG VRAM shared by the three tilesets, so a tile can use another set's chars and palettes. Atlases are therefore extracted per tileset combination, not per tileset.
+3. Object tile references are global across the sets, and the extended flag is an offset inside a set; cells keep their slot explicitly.
+4. **Open:** many placed common-tileset tiles have an all-zero Map16 entry, including pipe shafts. Some may be collision-only, but pipes are visible in the game, so at least part of them is filled in by code at load time. Finding that code is reverse engineering, not a parser fix. Cells and behaviours are correct either way.
+
 ## 9. Changelog
 - v1: initial plan.
 - v2: review answers applied (D2, D4, D5, D7, M3, section 7).
