@@ -81,3 +81,13 @@ crashlytics-build.properties
 /.vs1
 /ExportedAddons
 /[Aa]ssets/**/BuildInfo.Codegen.cs
+
+# NSMB DS port: nothing derived from the ROM may be committed. Must stay after the !*.meta rule above.
+/Assets/NSMBDS/Extracted/
+/Assets/NSMBDS/Extracted.meta
+/Roms/
+*.nds
+/RomAnalysis/
+/Tools/**/bin/
+/Tools/**/obj/
+!/Tools/**/*.csproj
