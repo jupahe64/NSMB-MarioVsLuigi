@@ -6,11 +6,17 @@ Standalone .NET 10 CLI, no NuGet dependencies. Run from the repository root (`gl
 
 ```
 dotnet run --project Tools/NsmbExtractor -- info Roms/<rom>.nds
+dotnet run --project Tools/NsmbExtractor -- check Roms/<rom>.nds
+dotnet run --project Tools/NsmbExtractor -- dump-fs Roms/<rom>.nds [outDir]
+dotnet run --project Tools/NsmbExtractor -- dump-overlays Roms/<rom>.nds [outDir]
+dotnet run --project Tools/NsmbExtractor -- compare-fs Roms/<a>.nds Roms/<b>.nds
 dotnet test Tools/NsmbTools.sln
 ```
 
+`check` validates every format assumption and fails on an inconsistent or edited ROM. Dumps default to `RomAnalysis/<rom name>/`.
+
 Put ROMs in `Roms/` (gitignored). Supported game codes: `A2DE` (USA), `A2DP` (Europe). Anything else is refused.
-Tests that need a ROM look for `Roms/NSMB_USA.nds`, `Roms/NSMB_EU.nds`, `Roms/NSMB_EU_DUMP.nds` and skip when missing.
+Tests that need a ROM look for `Roms/NSMB_USA.nds`, `Roms/NSMB_EU_DUMP.nds` (unmodified) and `Roms/NSMB_EU.nds` (edited copy, must be refused) and skip when missing.
 
 - `NsmbRom/` – parsing library (netstandard2.1).
 - `NsmbExtractor/` – CLI.

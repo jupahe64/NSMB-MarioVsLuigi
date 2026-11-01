@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NsmbRom.Nds;
+using NsmbRom.Nsmb;
 using Xunit;
 
 namespace NsmbRom.Tests {
@@ -27,26 +28,35 @@ namespace NsmbRom.Tests {
 
     public class RealRomTests {
         [RomFact("NSMB_USA.nds")]
-        public void UsaRomParses() {
-            AssertParses("NSMB_USA.nds", "A2DE");
-        }
-
-        [RomFact("NSMB_EU.nds")]
-        public void EuRomParses() {
-            AssertParses("NSMB_EU.nds", "A2DP");
+        public void UsaRomChecksOut() {
+            AssertChecksOut("NSMB_USA.nds", "A2DE", 13);
         }
 
         [RomFact("NSMB_EU_DUMP.nds")]
-        public void EuDumpRomParses() {
-            AssertParses("NSMB_EU_DUMP.nds", "A2DP");
+        public void EuDumpRomChecksOut() {
+            AssertChecksOut("NSMB_EU_DUMP.nds", "A2DP", 13);
         }
 
-        private static void AssertParses(string fileName, string gameCode) {
-            NdsHeader header = NdsHeader.Parse(File.ReadAllBytes(RomPaths.Find(fileName)!));
+        [RomFact("NSMB_EU.nds")]
+        public void EditedEuRomIsRefused() {
+            RomCheckReport report = RomChecker.Check(LoadRom("NSMB_EU.nds"));
 
-            Assert.Equal(gameCode, header.GameCode);
-            Assert.True(header.FileCount > 0);
-            Assert.True(header.Arm9OverlayCount > 0);
+            Assert.False(report.Ok);
+            Assert.All(report.Problems, p => Assert.StartsWith("overlay 65", p));
+        }
+
+        private static NdsRom LoadRom(string fileName) {
+            return NdsRom.Load(File.ReadAllBytes(RomPaths.Find(fileName)!));
+        }
+
+        private static void AssertChecksOut(string fileName, string gameCode, int tables) {
+            NdsRom rom = LoadRom(fileName);
+            RomCheckReport report = RomChecker.Check(rom);
+
+            Assert.Equal(gameCode, rom.Header.GameCode);
+            Assert.Empty(report.Problems);
+            Assert.Equal(tables, report.Tables.Count);
+            Assert.All(report.Tables, t => Assert.Equal(NsmbRegionProfile.TilesetCount, t.Valid + t.Empty));
         }
     }
 }

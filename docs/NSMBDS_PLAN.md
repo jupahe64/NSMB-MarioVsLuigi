@@ -1,6 +1,6 @@
 # NSMB (DS) → PC port on the NSMB-MarioVsLuigi codebase — Plan v1 (for review, nothing implemented yet)
 
-Date: 2026-11-01. Status: **v2 – review answers applied (see section 8), awaiting explicit go-ahead.** No code has been written and no ROM has been read yet.
+Date: 2026-11-01. Status: **v3 – in progress, see `docs/NSMBDS_MILESTONES.md`; M1 format verification results are in section 8.**
 
 ## 1. What I found
 
@@ -121,6 +121,21 @@ Sizes are relative: S ≈ one focused session, M ≈ a few, L ≈ many, XL = lon
 9. Assets are extracted into the Unity project and available in the Editor (D4/D5); runtime-supplied-asset builds come later if there is demand.
 10. **Git workflow:** commit and push every *tested* milestone; record milestone → commit in `docs/NSMBDS_MILESTONES.md` (and tag `nsmbds-mN`) so there is always a known-good fallback.
 
-## 8. Changelog
+## 8. M1 verification results (2026-11-01)
+Checked against real USA and EU ROMs with `check` and `compare-fs`.
+
+**Confirmed:** game codes, FNT/FAT layout, unnamed files are exactly the overlays, overlay counts (131 USA, 135 EU), BLZ-compressed overlays and ARM9, all 13 overlay-0 tileset tables at the expected offsets in both regions, 76 tileset slots, table values relative to the overlay count, graphics/palette/screen files LZ77-compressed, object/behaviour/Map16 files stored plain.
+
+**Differs from the plan:**
+1. **Level data is not region-identical.** 15 level files differ, by a few bytes up to several hundred. One area exists only in EU; one orphan bgdat file exists only in USA. So `verify` cannot be "clean" as M2 assumed: it must report these as known regional differences.
+2. Table entries are not plain file IDs: the low 16 bits are the file ID, and the high 16 bits are 0 or a tag. The tag's meaning is unconfirmed (probably a data-archive group and member index).
+3. Value "first ID past the last file" means "no file" (mostly the animated-graphics table).
+4. One EU overlay is stored uncompressed, so the per-overlay flag must be honoured.
+5. A ROM copy can be edited: the header and table checks alone do not catch this, so `check` must pass before extraction.
+
+**Decisions:** USA is the source of level data. EU ROMs stay accepted and extract their own data. The EU-only area `F11_3` is left out for now. M2's `verify` reports regional differences instead of expecting none.
+
+## 9. Changelog
 - v1: initial plan.
 - v2: review answers applied (D2, D4, D5, D7, M3, section 7).
+- v3: M1 verification results (section 8).
