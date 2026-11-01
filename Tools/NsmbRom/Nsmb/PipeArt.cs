@@ -44,10 +44,23 @@ namespace NsmbRom.Nsmb {
             [0x87] = "I_do_kousa_y_rd",
         };
 
+        // Metal hub block where pipes join, confirmed against the running game. Each corner is its own texture file.
+        public static readonly IReadOnlyDictionary<int, string> HubFiles = new Dictionary<int, string> {
+            [0x7C] = "I_do_kanagu_lu.nsbtx",
+            [0x7D] = "I_do_kanagu_ru.nsbtx",
+            [0x8C] = "I_do_kanagu_ld.nsbtx",
+            [0x8D] = "I_do_kanagu_rd.nsbtx",
+        };
+
         private readonly Dictionary<int, byte[]> tiles = new();
         private readonly Dictionary<int, byte[]> junctions = new();
 
-        public PipeArt(Nsbtx textures) {
+        public PipeArt(Nsbtx textures, IReadOnlyDictionary<int, Nsbtx> hubs) {
+            foreach (KeyValuePair<int, Nsbtx> hub in hubs) {
+                junctions[hub.Key] = hub.Value.Decode(hub.Value.Textures[0], hub.Value.Palettes[0])
+                    ?? throw new RomFormatException("Pipe hub texture uses an unsupported format.");
+            }
+
             Dictionary<string, NsbtxTexture> byName = new(StringComparer.Ordinal);
             foreach (NsbtxTexture texture in textures.Textures) {
                 byName[texture.Name] = texture;

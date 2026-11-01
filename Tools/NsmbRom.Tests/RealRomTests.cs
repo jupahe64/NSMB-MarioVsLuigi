@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NsmbRom.Nds;
 using NsmbRom.Nitro;
@@ -58,8 +59,12 @@ namespace NsmbRom.Tests {
 
         [RomFact("NSMB_USA.nds")]
         public void PipeArtResolvesPiecesColoursAndInvisibleFillers() {
-            byte[] texture = LoadRom("NSMB_USA.nds").GetFileData("polygon_unit/I_dokan.nsbtx").ToArray();
-            PipeArt pipes = new(Nsbtx.Parse(texture));
+            NdsRom rom = LoadRom("NSMB_USA.nds");
+            Dictionary<int, Nsbtx> hubs = new();
+            foreach (KeyValuePair<int, string> hub in PipeArt.HubFiles) {
+                hubs[hub.Key] = Nsbtx.Parse(rom.GetFileData("polygon_unit/" + hub.Value).ToArray());
+            }
+            PipeArt pipes = new(Nsbtx.Parse(rom.GetFileData("polygon_unit/I_dokan.nsbtx").ToArray()), hubs);
 
             byte[]? green = pipes.GetTile(TilesetSlot.Common, 0x9E, 0x01010004);
             byte[]? greenSolidVariant = pipes.GetTile(TilesetSlot.Common, 0x74, 0x01010024);
@@ -69,7 +74,8 @@ namespace NsmbRom.Tests {
             Assert.Equal(green, greenSolidVariant);
             Assert.NotNull(red);
             Assert.NotEqual(green, red);
-            Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x7C, 0x0101003F));
+            Assert.NotNull(pipes.GetTile(TilesetSlot.Common, 0x7C, 0x0101003F));
+            Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x95, 0x0101003F));
             Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x20, 0x00010000));
             Assert.NotEqual(pipes.GetTile(TilesetSlot.Common, 0x78, 0x01010026), pipes.GetTile(TilesetSlot.Common, 0x88, 0x01010026));
         }

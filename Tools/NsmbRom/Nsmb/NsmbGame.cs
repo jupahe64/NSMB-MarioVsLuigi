@@ -126,7 +126,9 @@ namespace NsmbRom.Nsmb {
 
         public AreaTilesets GetTilesets(LevelArea area) {
             int variant = GetCommonVariant(area.BackgroundScreen);
-            pipeArt ??= new PipeArt(Nsbtx.Parse(ReadPlain(Named("I_dokan.nsbtx"))));
+            pipeArt ??= new PipeArt(
+                Nsbtx.Parse(ReadPlain(Named("I_dokan.nsbtx"))),
+                PipeArt.HubFiles.ToDictionary(hub => hub.Key, hub => Nsbtx.Parse(ReadPlain(Named(hub.Value)))));
             return new AreaTilesets(GetCommonTileset(variant), variant, GetLevelTileset(area.Settings.Tileset), GetSubTileset(), pipeArt);
         }
 
