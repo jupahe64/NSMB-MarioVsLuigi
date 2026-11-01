@@ -168,6 +168,36 @@ namespace NsmbRom.Nsmb {
             return grid;
         }
 
+        /// <summary>Renders the background of a level, or returns null when it has none. It can use chars of its foreground.</summary>
+        public byte[]? RenderBackground(int id, int foregroundId, out int width, out int height) {
+            return RenderLayer(Overlay0Table.BackgroundPalette, Overlay0Table.BackgroundScreen, id, id, foregroundId, ScreenLayer.BackgroundPaletteBase, out width, out height);
+        }
+
+        /// <summary>Renders the foreground of a level, or returns null when it has none. It can use chars of its background.</summary>
+        public byte[]? RenderForeground(int backgroundId, int id, out int width, out int height) {
+            return RenderLayer(Overlay0Table.ForegroundPalette, Overlay0Table.ForegroundScreen, id, backgroundId, id, ScreenLayer.ForegroundPaletteBase, out width, out height);
+        }
+
+        private byte[]? RenderLayer(Overlay0Table palette, Overlay0Table screen, int id, int backgroundId, int foregroundId, int paletteBase, out int width, out int height) {
+            width = height = 0;
+            NitroFile? colors = LayerFile(palette, id);
+            NitroFile? layout = LayerFile(screen, id);
+            if (colors == null || layout == null) {
+                return null;
+            }
+
+            NitroFile? backgroundChars = LayerFile(Overlay0Table.BackgroundGraphics, backgroundId);
+            NitroFile? foregroundChars = LayerFile(Overlay0Table.ForegroundGraphics, foregroundId);
+            return ScreenLayer.Render(
+                backgroundChars != null ? ReadCompressed(backgroundChars) : null,
+                foregroundChars != null ? ReadCompressed(foregroundChars) : null,
+                ReadCompressed(colors), ReadCompressed(layout), paletteBase, out width, out height);
+        }
+
+        private NitroFile? LayerFile(Overlay0Table table, int id) {
+            return id < NsmbRegionProfile.TilesetCount ? RomChecker.GetTableFile(Rom, overlay0, profile, table, id) : null;
+        }
+
         public Tileset GetLevelTileset(int id) {
             if (id < 0 || id >= NsmbRegionProfile.TilesetCount) {
                 throw new RomFormatException($"Tileset ID {id} is out of range.");

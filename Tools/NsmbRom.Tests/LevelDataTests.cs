@@ -199,6 +199,53 @@ namespace NsmbRom.Tests {
         }
     }
 
+    public class ScreenLayerTests {
+        private static byte[] Screen(ushort first) {
+            byte[] screen = new byte[64 * 2];
+            BinaryPrimitives.WriteUInt16LittleEndian(screen, first);
+            return screen;
+        }
+
+        [Fact]
+        public void DrawsCharWithLayerBasesAndFlip() {
+            byte[] chars = new byte[64];
+            chars[0] = 1;
+            byte[] palettes = new byte[512];
+            BinaryPrimitives.WriteUInt16LittleEndian(palettes.AsSpan(2), 0x001F);
+            ushort word = (ushort) (ScreenLayer.BackgroundCharBase | 0x400 | (ScreenLayer.BackgroundPaletteBase << 12));
+
+            byte[] rgba = ScreenLayer.Render(chars, null, palettes, Screen(word), ScreenLayer.BackgroundPaletteBase, out int width, out int height);
+
+            Assert.Equal(512, width);
+            Assert.Equal(8, height);
+            Assert.Equal(0, rgba[3]);
+            Assert.Equal(new byte[] { 255, 0, 0, 255 }, rgba[(7 * 4)..(8 * 4)]);
+        }
+
+        [Fact]
+        public void BackgroundBorrowsLowCharsFromTheForeground() {
+            byte[] foregroundChars = new byte[64 * 3];
+            foregroundChars[64 * 2] = 1;
+            byte[] palettes = new byte[512];
+            BinaryPrimitives.WriteUInt16LittleEndian(palettes.AsSpan(2), 0x03E0);
+            ushort word = (ushort) ((ScreenLayer.ForegroundCharBase + 2) | (ScreenLayer.BackgroundPaletteBase << 12));
+
+            byte[] rgba = ScreenLayer.Render(new byte[64], foregroundChars, palettes, Screen(word), ScreenLayer.BackgroundPaletteBase, out _, out _);
+
+            Assert.Equal(new byte[] { 0, 255, 0, 255 }, rgba[..4]);
+        }
+
+        [Fact]
+        public void LeavesCharsBelowBothLayersTransparent() {
+            byte[] chars = new byte[64];
+            chars[0] = 1;
+
+            byte[] rgba = ScreenLayer.Render(chars, chars, new byte[512], Screen(5), ScreenLayer.BackgroundPaletteBase, out _, out _);
+
+            Assert.All(rgba, value => Assert.Equal(0, value));
+        }
+    }
+
     public class NsbtxTests {
         private static byte[] BuildNsbtx() {
             const int tex0 = 0x14;

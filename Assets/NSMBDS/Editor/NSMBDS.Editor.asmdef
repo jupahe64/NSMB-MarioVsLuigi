@@ -2,7 +2,8 @@
     "name": "NSMBDS.Editor",
     "rootNamespace": "NsmbDs.Editor",
     "references": [
-        "NSMBDS.Runtime"
+        "NSMBDS.Runtime",
+        "Unity.2D.Tilemap.Editor"
     ],
     "includePlatforms": [
         "Editor"

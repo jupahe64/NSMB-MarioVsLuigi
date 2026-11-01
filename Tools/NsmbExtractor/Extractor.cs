@@ -30,7 +30,15 @@ namespace NsmbExtractor {
             string tilesetsDir = Path.Combine(outDir, "tilesets");
             Directory.CreateDirectory(levelsDir);
             Directory.CreateDirectory(tilesetsDir);
+            string layersDir = Path.Combine(outDir, "layers");
+            if (Directory.Exists(layersDir)) {
+                foreach (string stale in Directory.GetFiles(layersDir, "*.png")) {
+                    File.Delete(stale);
+                }
+            }
+            Directory.CreateDirectory(layersDir);
 
+            HashSet<string> writtenLayers = new();
             HashSet<string> writtenTilesets = new();
             List<AreaIndexEntry> index = new();
             foreach (string name in game.AreaNames) {
@@ -41,6 +49,9 @@ namespace NsmbExtractor {
                 // Atlases depend on all three sets, because tiles can use each other's chars and palettes.
                 string setKey = $"set_{area.Settings.Tileset:D2}_{tilesets.CommonVariant}";
                 WriteTilesetGroup(tilesets, setKey, tilesetsDir, writtenTilesets);
+
+                WriteLayer(game, true, area.Settings.Background, area.Settings.Foreground, layersDir, writtenLayers);
+                WriteLayer(game, false, area.Settings.Background, area.Settings.Foreground, layersDir, writtenLayers);
 
                 File.WriteAllText(Path.Combine(levelsDir, name + ".json"), JsonSerializer.Serialize(area, Json));
                 File.WriteAllBytes(Path.Combine(levelsDir, name + ".map16"), MemoryMarshal.AsBytes(grid.Cells.AsSpan()).ToArray());
@@ -85,6 +96,22 @@ namespace NsmbExtractor {
             }
             renderer.WriteContactSheet(Path.Combine(outDir, "_contact.png"));
             Console.WriteLine($"Rendered {game.AreaNames.Count} areas to {outDir}");
+        }
+
+        // Named by pair: each layer can show chars of the other one.
+        private static void WriteLayer(NsmbGame game, bool background, int backgroundId, int foregroundId, string layersDir, HashSet<string> written) {
+            string name = $"{(background ? "bg" : "fg")}_{backgroundId:D2}_{foregroundId:D2}";
+            if (!written.Add(name)) {
+                return;
+            }
+
+            byte[]? rgba = background
+                ? game.RenderBackground(backgroundId, foregroundId, out int width, out int height)
+                : game.RenderForeground(backgroundId, foregroundId, out width, out height);
+            if (rgba != null) {
+                using FileStream file = File.Create(Path.Combine(layersDir, name + ".png"));
+                PngWriter.Write(file, rgba, width, height);
+            }
         }
 
         private static void WriteTilesetGroup(AreaTilesets tilesets, string key, string tilesetsDir, HashSet<string> written) {
