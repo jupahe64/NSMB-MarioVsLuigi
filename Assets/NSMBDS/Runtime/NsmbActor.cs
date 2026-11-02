@@ -25,6 +25,8 @@ namespace NsmbDs {
 
         protected virtual float HalfWidth => 8f;
         protected virtual float Height => 16f;
+        protected virtual bool CanBeStomped => true;
+        protected virtual bool CanTouchPlayer => true;
 
         /// <summary>Marker that spawned this actor, so it can spawn again once off screen.</summary>
         public NsmbSpriteMarker Marker { get; private set; }
@@ -74,13 +76,13 @@ namespace NsmbDs {
         private void TouchPlayer() {
             float height = Player.BodyHeight;
             bool overlaps = Mathf.Abs(Player.X - X) < HalfWidth + 6f && Player.Y > Y - Height && Player.Y - height < Y;
-            if (!overlaps) {
+            if (!overlaps || !CanTouchPlayer) {
                 return;
             }
 
-            if (Stage.HasStar) {
+            if (Stage.HasStar && CanBeStomped) {
                 OnStomped();
-            } else if (Player.VelocityY < 0f && Player.Y < Y - (Height / 2f) + 4f) {
+            } else if (CanBeStomped && Player.VelocityY < 0f && Player.Y < Y - (Height / 2f) + 4f) {
                 Player.VelocityY = StompBounceSpeed;
                 OnStomped();
             } else {

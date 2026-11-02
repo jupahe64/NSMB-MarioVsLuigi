@@ -15,6 +15,10 @@ namespace NsmbDs {
             { 148, typeof(NsmbGoomba) },
             { 149, typeof(NsmbKoopa) },
             { 150, typeof(NsmbKoopa) },
+            { 23, typeof(NsmbPiranha) },
+            { 24, typeof(NsmbPiranha) },
+            { 32, typeof(NsmbGoalPole) },
+            { 57, typeof(NsmbCoinSprite) },
         };
 
         private readonly NsmbStage stage;

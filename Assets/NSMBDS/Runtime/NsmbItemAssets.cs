@@ -13,6 +13,7 @@ namespace NsmbDs {
         public Sprite[] goomba;
         public Sprite[] koopa;
         public Sprite[] koopaRed;
+        public Sprite[] piranha;
         public Avatar smallAvatar;
         public Avatar largeAvatar;
         public RuntimeAnimatorController smallController;

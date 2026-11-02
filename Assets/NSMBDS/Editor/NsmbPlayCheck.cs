@@ -136,12 +136,27 @@ namespace NsmbDs.Editor {
             case 15:
                 Capture("play_shell");
                 Debug.Log($"[NSMBDS] Play check: stomped koopa, shell moving {koopa != null && koopa.IsMovingShell}, at {koopa?.X}, player {select.Player.X}");
-                select.LoadArea(select.FindEntry("C01_1").Value);
+                select.Player.Teleport(4000f, 479f);
+                select.Player.ScriptedInput = new NsmbPlayerInput { Right = true };
                 break;
             case 16:
-                select.Player.Teleport(912f, 224f);
+                select.Player.ScriptedInput = default(NsmbPlayerInput);
+                Debug.Log($"[NSMBDS] Play check: goal pole, finished {select.Player.GetComponent<NsmbStage>().LevelFinished}, player {select.Player.X}");
+                select.LoadArea(select.FindEntry("A02_1").Value);
                 break;
             case 17:
+                select.Player.Teleport(2600f, 479f);
+                break;
+            case 18:
+                NsmbPiranha piranha = Object.FindAnyObjectByType<NsmbPiranha>();
+                Debug.Log($"[NSMBDS] Play check: piranha actors {select.Player.GetComponent<NsmbStage>().Actors.AliveCount}, at {piranha?.X}, {piranha?.Y}, sprite {piranha?.GetComponent<SpriteRenderer>().sprite?.name}");
+                Capture("play_piranha");
+                select.LoadArea(select.FindEntry("C01_1").Value);
+                break;
+            case 19:
+                select.Player.Teleport(912f, 224f);
+                break;
+            case 20:
                 Debug.Log($"[NSMBDS] Play check: water {select.Player.Motor.Liquid} surface {select.Player.Motor.LiquidSurfaceY}, underwater {select.Player.Motor.Underwater}, at {select.Player.X}, {select.Player.Y}");
                 Capture("play_water");
                 SessionState.SetBool(ActiveKey, false);

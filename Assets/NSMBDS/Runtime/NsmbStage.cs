@@ -43,6 +43,21 @@ namespace NsmbDs {
         public NsmbItemKind LastCollected { get; private set; }
         public NsmbItemAssets Assets => assets;
         public NsmbActors Actors => actors;
+        public bool LevelFinished { get; private set; }
+
+        /// <summary>The art of this area's coin tile, for coins placed as sprites.</summary>
+        public Sprite CoinSprite {
+            get {
+                TileBase[] used = new TileBase[Tilemap.GetUsedTilesCount()];
+                Tilemap.GetUsedTilesNonAlloc(used);
+                foreach (TileBase tile in used) {
+                    if (tile is NsmbTile known && new NsmbTileBehavior(known.behavior).IsCoin) {
+                        return known.sprite;
+                    }
+                }
+                return null;
+            }
+        }
         public bool HasStar => starFrames > 0;
 
         private void Awake() {
@@ -62,6 +77,7 @@ namespace NsmbDs {
             bumps.Clear();
 
             motor = newMotor;
+            LevelFinished = false;
             motor.HeadHit += OnHeadHit;
             motor.Pounded += OnPounded;
             FindLiquids();
@@ -253,7 +269,14 @@ namespace NsmbDs {
             return Tilemap.GetTile(cell) is NsmbTile tile ? tile.behavior : 0u;
         }
 
-        private void AddCoins(int count) {
+        public void FinishLevel() {
+            if (!LevelFinished) {
+                LevelFinished = true;
+                Debug.Log($"[NSMBDS] Level finished: {player.AreaName}, coins {player.Coins}");
+            }
+        }
+
+        public void AddCoins(int count) {
             player.Coins += count;
             if (player.Coins >= ExtraLifeCoins) {
                 player.Coins -= ExtraLifeCoins;
