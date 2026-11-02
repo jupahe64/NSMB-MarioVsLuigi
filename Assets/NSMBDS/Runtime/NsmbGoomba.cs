@@ -11,7 +11,7 @@ namespace NsmbDs {
         private int flat;
         private int age;
 
-        protected override float Height => 14f;
+        protected override float HalfWidth => 7f;
 
         protected override void OnSpawn() {
             frames = Stage.Assets != null ? Stage.Assets.goomba : null;

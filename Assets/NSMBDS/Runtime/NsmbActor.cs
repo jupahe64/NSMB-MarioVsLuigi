@@ -8,7 +8,17 @@ namespace NsmbDs {
         private const float MaxFall = 4f;
         private const float Depth = -2f;
         private const int SortingOrder = 12;
-        private const float StompBounceSpeed = 7.265625f;
+
+        // Pixels per frame, y up: the bounce is higher with jump held.
+        private const float StompBounceHeld = 3.875f;
+        private const float StompBounce = 3.59375f;
+
+        // From the player's ActiveCollider in memory.
+        private const float PlayerHitHalfWidth = 4f;
+        private const float PlayerHitHeight = 12f;
+
+        // StageEntity::func_ov000_0209a4f0: stomp if the feet are less than this deep in the actor.
+        private const float StompDepthFalling = 5f;
 
         protected NsmbStage Stage { get; private set; }
         protected NsmbPlayerMotor Player { get; private set; }
@@ -32,6 +42,13 @@ namespace NsmbDs {
         public NsmbSpriteMarker Marker { get; private set; }
 
         private float pending;
+
+        /// <summary>Moves the actor, to line it up with a trace from the game.</summary>
+        public void PlaceAt(float x, float y) {
+            X = x;
+            Y = y;
+            Place();
+        }
 
         public void Setup(NsmbStage stage, NsmbSpriteMarker marker, float x, float y) {
             Stage = stage;
@@ -62,28 +79,39 @@ namespace NsmbDs {
                 return;
             }
 
+            if (Stage.ManualStepping) {
+                return;
+            }
+
             pending += Time.deltaTime;
             while (pending >= StepSeconds) {
                 pending -= StepSeconds;
-                StepActor();
-                if (!Defeated) {
-                    TouchPlayer();
-                }
+                StepOnce();
+            }
+            Place();
+        }
+
+        public void StepOnce() {
+            StepActor();
+            if (!Defeated) {
+                TouchPlayer();
             }
             Place();
         }
 
         private void TouchPlayer() {
-            float height = Player.BodyHeight;
-            bool overlaps = Mathf.Abs(Player.X - X) < HalfWidth + 6f && Player.Y > Y - Height && Player.Y - height < Y;
+            float top = Y - Height;
+            float playerHeight = Player.IsBig ? PlayerHitHeight * 2f : PlayerHitHeight;
+            bool overlaps = Mathf.Abs(Player.X - X) < HalfWidth + PlayerHitHalfWidth && Player.Y > top && Player.Y - playerHeight < Y;
             if (!overlaps || !CanTouchPlayer) {
                 return;
             }
 
+            float depth = Player.Y - top;
             if (Stage.HasStar && CanBeStomped) {
                 OnStomped();
-            } else if (CanBeStomped && Player.VelocityY < 0f && Player.Y < Y - (Height / 2f) + 4f) {
-                Player.VelocityY = StompBounceSpeed;
+            } else if (CanBeStomped && Player.VelocityY <= 0f && depth < StompDepthFalling) {
+                Player.Bounce(Stage.JumpHeld ? StompBounceHeld : StompBounce);
                 OnStomped();
             } else {
                 OnPlayerTouch();

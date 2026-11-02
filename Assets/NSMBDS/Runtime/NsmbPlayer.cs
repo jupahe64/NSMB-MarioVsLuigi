@@ -13,6 +13,18 @@ namespace NsmbDs {
         private const float PitMargin = 48f;
         private const float ViewProbe = 0.25f;
         private const float AreaEdgeMargin = 0f;
+        private const float DeathHop = 2f;
+        private const int DeathPauseFrames = 32;
+        private const float DeathPopSpeed = 3.3125f;
+        private const float DeathGravityFast = 0.0625f;
+        private const float DeathGravity = 0.25f;
+        private const float DeathGravitySlow = 0.046875f;
+        private const float DeathFastAbove = 2.5f;
+        private const float DeathSlowBelow = 0.5f;
+        private const float DeathFallFastBelow = 2f;
+        private const float DeathGravityFalling = 0.34375f;
+        private const float MaxDeathFall = 4f;
+        private const int DeathFrames = 210;
         private const float DepthNormal = -4f;
         private const float DepthInPipe = 1f;
 
@@ -33,6 +45,9 @@ namespace NsmbDs {
         private Camera view;
         private NsmbRegionMarker currentView;
         private NsmbPower previousPower;
+        private bool dying;
+        private int deathFrames;
+        private float deathSpeed;
         private float pendingTime;
         private NsmbPlayerInput input;
         private Warp warp;
@@ -61,6 +76,7 @@ namespace NsmbDs {
         public int ExtraLives { get; set; }
 
         public void Teleport(float x, float y) {
+            dying = false;
             motor.Place(x, y);
             UpdateTransform();
         }
@@ -173,13 +189,49 @@ namespace NsmbDs {
             return result;
         }
 
-        /// <summary>Back to the start of the area until lives and game over exist.</summary>
+        /// <summary>The game's death: a 2 px hop, a pause, a pop up, then back to the start of the area.</summary>
         public void Die() {
-            motor.Power = NsmbPower.Small;
-            PlaceAt(area.FindEntrance(area.startEntrance));
+            if (dying) {
+                return;
+            }
+
+            dying = true;
+            deathFrames = 0;
+            deathSpeed = 0f;
+            motor.Stop();
+            motor.Y -= DeathHop;
+        }
+
+        public bool IsDying => dying;
+
+        private void StepDeath() {
+            deathFrames++;
+            if (deathFrames < DeathPauseFrames) {
+                return;
+            }
+
+            if (deathFrames == DeathPauseFrames) {
+                deathSpeed = DeathPopSpeed;
+            }
+            float pull = deathSpeed > DeathFastAbove ? DeathGravityFast
+                : Mathf.Abs(deathSpeed) < DeathSlowBelow ? DeathGravitySlow
+                : deathSpeed < -DeathFallFastBelow ? DeathGravityFalling
+                : DeathGravity;
+            deathSpeed = Mathf.Max(deathSpeed - pull, -MaxDeathFall);
+            motor.Y -= deathSpeed;
+            if (deathFrames >= DeathFrames) {
+                dying = false;
+                motor.Power = NsmbPower.Small;
+                PlaceAt(area.FindEntrance(area.startEntrance));
+            }
         }
 
         private void StepFrame() {
+            if (dying) {
+                StepDeath();
+                return;
+            }
+
             if (warp != Warp.None) {
                 StepWarp();
                 return;

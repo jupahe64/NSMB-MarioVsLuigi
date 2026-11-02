@@ -91,7 +91,24 @@ namespace NsmbDs.Editor {
             player.Teleport(x, y);
             player.Motor.Grounded = true;
 
-            StringBuilder output = new("frame,x,y,vx,vy\n");
+            string[] header = lines[0].Split(',');
+            int oid = System.Array.IndexOf(header, "oid");
+            float actorX = oid > 0 ? float.Parse(first[oid + 1], CultureInfo.InvariantCulture) : 0f;
+            float actorY = oid > 0 ? float.Parse(first[oid + 2], CultureInfo.InvariantCulture) : 0f;
+            NsmbActor actor = null;
+            if (actorX != 0f) {
+                float best = float.MaxValue;
+                foreach (NsmbActor candidate in Object.FindObjectsByType<NsmbActor>(FindObjectsSortMode.None)) {
+                    float distance = Mathf.Abs(candidate.X - actorX);
+                    if (distance < best) {
+                        best = distance;
+                        actor = candidate;
+                    }
+                }
+                actor?.PlaceAt(actorX, actorY);
+            }
+
+            StringBuilder output = new("frame,x,y,vx,vy,ax,ay\n");
             int frames = lines.Length - 2;
             for (int frame = 0; frame < frames; frame++) {
                 NsmbPlayerInput input = default;
@@ -108,7 +125,7 @@ namespace NsmbDs.Editor {
                     }
                 }
                 player.StepManually(input);
-                output.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4}", frame, player.X, player.Y, player.SpeedX, player.SpeedY));
+                output.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},{6}", frame, player.X, player.Y, player.SpeedX, player.SpeedY, actor != null ? actor.X : 0f, actor != null ? actor.Y : 0f));
             }
             player.ManualStepping = false;
             File.WriteAllText(dir + "/unity.csv", output.ToString());

@@ -66,6 +66,12 @@ namespace NsmbRom.Tests {
             foreach (string dir in Directory.GetDirectories(root).OrderBy(d => d)) {
                 string[] parts = File.ReadAllText(Path.Combine(dir, "scenario.txt")).Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 string name = parts[0];
+
+                // Scenarios with enemies need the actors, so they only run in Unity (NsmbTraceCheck).
+                if (name is "gtouch" or "gstomp" or "kstomp") {
+                    continue;
+                }
+
                 List<Span> spans = parts[5].Split(',').Select(p => {
                     string[] kv = p.Split(':');
                     string[] range = kv[1].Split('-');

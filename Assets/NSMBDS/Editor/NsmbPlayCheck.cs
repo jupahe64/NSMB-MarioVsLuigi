@@ -99,7 +99,8 @@ namespace NsmbDs.Editor {
                 select.LoadArea(select.FindEntry("A01_1").Value);
                 break;
             case 9:
-                select.Player.Teleport(22f * 16f + 8f, 479f);
+                select.Player.Teleport(22f * 16f + 8f, 480f);
+                select.Player.Motor.Grounded = true;
                 select.Player.ScriptedInput = new NsmbPlayerInput { Jump = true };
                 break;
             case 10:
@@ -121,7 +122,9 @@ namespace NsmbDs.Editor {
                 Debug.Log($"[NSMBDS] Play check: actors {select.Player.GetComponent<NsmbStage>().Actors.AliveCount}, goomba at {goomba?.X}, {goomba?.Y}, power {select.Player.Motor.Power}, player {select.Player.X}");
                 Capture("play_goomba");
                 stomped = goomba;
-                select.Player.Teleport(goomba.X - 6f, goomba.Y - 40f);
+                if (goomba != null) {
+                    select.Player.Teleport(goomba.X - 6f, goomba.Y - 40f);
+                }
                 break;
             case 13:
                 Debug.Log($"[NSMBDS] Play check: stomp, goomba gone {stomped == null}, power {select.Player.Motor.Power}, area start respawn {select.Player.X}");

@@ -9,16 +9,19 @@ namespace NsmbDs {
         private const int ShellSpinFrames = 4;
         private const int FramesPerSprite = 2;
         private const int KickGraceFrames = 12;
+        private const float ShellStopRate = 0.1f;
+        private const float ShellDrift = 0.5f;
         private const int RedSprite = 150;
 
         private Sprite[] frames;
         private bool shell;
         private int age;
         private int grace;
+        private bool sliding;
 
         private bool IsRed => Marker.type == RedSprite;
 
-        public bool IsMovingShell => shell && SpeedX != 0f;
+        public bool IsMovingShell => shell && Mathf.Abs(SpeedX) > ShellDrift;
 
         protected override void OnSpawn() {
             frames = Stage.Assets == null ? null : IsRed ? Stage.Assets.koopaRed : Stage.Assets.koopa;
@@ -29,6 +32,12 @@ namespace NsmbDs {
         protected override void StepActor() {
             if (grace > 0) {
                 grace--;
+            }
+
+            // A stomped shell slides to a stop over a few frames.
+            if (sliding) {
+                SpeedX = Mathf.MoveTowards(SpeedX, 0f, ShellStopRate);
+                sliding = SpeedX != 0f;
             }
 
             if (IsRed && !shell && Grounded && !FloorAhead()) {
@@ -49,9 +58,9 @@ namespace NsmbDs {
         }
 
         protected override void OnStomped() {
-            if (!shell || SpeedX != 0f) {
+            if (!shell || Mathf.Abs(SpeedX) > ShellDrift) {
                 shell = true;
-                SpeedX = 0f;
+                sliding = true;
                 grace = KickGraceFrames;
             } else {
                 Kick();
@@ -63,7 +72,7 @@ namespace NsmbDs {
                 return;
             }
 
-            if (shell && SpeedX == 0f) {
+            if (shell && !IsMovingShell) {
                 Kick();
             } else {
                 base.OnPlayerTouch();
@@ -71,6 +80,7 @@ namespace NsmbDs {
         }
 
         private void Kick() {
+            sliding = false;
             SpeedX = Player.X < X ? ShellSpeed : -ShellSpeed;
             grace = KickGraceFrames;
         }

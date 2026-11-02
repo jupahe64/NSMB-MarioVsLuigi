@@ -44,6 +44,8 @@ namespace NsmbDs {
         public NsmbItemAssets Assets => assets;
         public NsmbActors Actors => actors;
         public bool LevelFinished { get; private set; }
+        public bool JumpHeld => player.CurrentInput.Jump;
+        public bool ManualStepping => player.ManualStepping;
 
         /// <summary>The art of this area's coin tile, for coins placed as sprites.</summary>
         public Sprite CoinSprite {
@@ -104,6 +106,9 @@ namespace NsmbDs {
 
             UpdateLiquid();
             actors.Step(Camera.main);
+            if (player.ManualStepping) {
+                actors.StepAllOnce();
+            }
             CollectCoins();
             CheckHarmfulTiles();
             StepBumps();

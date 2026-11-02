@@ -84,6 +84,15 @@ namespace NsmbDs {
             }
         }
 
+        /// <summary>Steps every actor, in frame-exact checks.</summary>
+        public void StepAllOnce() {
+            foreach (NsmbActor actor in alive.ToArray()) {
+                if (actor != null) {
+                    actor.StepOnce();
+                }
+            }
+        }
+
         public void DefeatTouching(NsmbActor source) {
             foreach (NsmbActor actor in alive) {
                 if (actor != null && actor != source && !actor.Defeated && source.Touches(actor)) {
@@ -95,7 +104,7 @@ namespace NsmbDs {
         private void Spawn(NsmbSpriteMarker marker, Vector2 position) {
             GameObject body = new($"Actor {marker.type}");
             NsmbActor actor = (NsmbActor) body.AddComponent(Registry[marker.type]);
-            actor.Setup(stage, marker, position.x + (NsmbTileSource.TileSize / 2f), position.y + NsmbTileSource.TileSize);
+            actor.Setup(stage, marker, position.x + (NsmbTileSource.TileSize / 2f), position.y + (NsmbTileSource.TileSize / 2f) + (NsmbTileSource.TileSize / 2f));
             alive.Add(actor);
         }
     }

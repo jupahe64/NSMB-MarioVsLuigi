@@ -300,6 +300,12 @@ namespace NsmbDs {
             }
         }
 
+        /// <summary>A bounce off an enemy; like a jump, it moves at full speed on its first frame.</summary>
+        public void Bounce(float pixelsPerFrame) {
+            VelocityY = pixelsPerFrame / PixelsPerFrame;
+            tookOff = true;
+        }
+
         public void Stop() {
             VelocityX = 0f;
             VelocityY = 0f;
