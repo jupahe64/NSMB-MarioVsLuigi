@@ -21,6 +21,16 @@ MonoBehaviour:
   mini: {fileID: -1858463510, guid: a87d3b028baa82640b06b88398a8c4f0, type: 3}
   shell: {fileID: 2664608197882872095, guid: a87d3b028baa82640b06b88398a8c4f0, type: 3}
   oneUp: {fileID: 5709720548119103520, guid: a87d3b028baa82640b06b88398a8c4f0, type: 3}
+  goomba:
+  - {fileID: -2665958366948368982, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: 6268277884297706374, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: 1329094052204966939, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: -2646936077272662393, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: 8044139085597164931, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: 7518829234646223683, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: 2147156700845412417, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: -1837141360104208851, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
+  - {fileID: -728934508601558331, guid: b455056ca00f84e48a8040f94ae8170d, type: 3}
   smallAvatar: {fileID: 9000000, guid: e0d3ef6bcff32414dbd34fc6ac031292, type: 3}
   largeAvatar: {fileID: 9000000, guid: 024ceb223bceebd488dbc425555f4df0, type: 3}
   smallController: {fileID: 22100000, guid: 347b7f77a47c4db4b85584fbfdecf63b, type: 2}

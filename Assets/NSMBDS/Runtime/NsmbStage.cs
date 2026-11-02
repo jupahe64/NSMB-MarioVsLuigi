@@ -33,16 +33,23 @@ namespace NsmbDs {
         private NsmbPlayerMotor motor;
         private NsmbItemAssets assets;
         private SpriteRenderer liquidView;
+        private NsmbActors actors;
         private int invincibleFrames;
         private int starFrames;
 
         public int InvincibleFrames => invincibleFrames;
+        public NsmbPlayerMotor Motor => motor;
+        public NsmbPlayerMotor CurrentMotor => player.Motor;
+        public NsmbItemKind LastCollected { get; private set; }
+        public NsmbItemAssets Assets => assets;
+        public NsmbActors Actors => actors;
         public bool HasStar => starFrames > 0;
 
         private void Awake() {
             player = GetComponent<NsmbPlayer>();
             assets = Resources.Load<NsmbItemAssets>(AssetsResource);
             player.FrameStepped += StepFrame;
+            actors = new NsmbActors(this);
         }
 
         private void Follow(NsmbPlayerMotor newMotor) {
@@ -58,6 +65,7 @@ namespace NsmbDs {
             motor.HeadHit += OnHeadHit;
             motor.Pounded += OnPounded;
             FindLiquids();
+            actors.EnterArea(player.Area);
         }
 
         private void FindLiquids() {
@@ -79,6 +87,7 @@ namespace NsmbDs {
             }
 
             UpdateLiquid();
+            actors.Step(Camera.main);
             CollectCoins();
             CheckHarmfulTiles();
             StepBumps();
@@ -252,6 +261,13 @@ namespace NsmbDs {
             }
         }
 
+        /// <summary>Enemy contact; ignored while blinking.</summary>
+        public void HurtPlayer() {
+            if (invincibleFrames == 0) {
+                Hurt();
+            }
+        }
+
         /// <summary>One hit: big players shrink and blink, small players die.</summary>
         public void Hurt() {
             if (motor.Power == NsmbPower.Small || motor.Power == NsmbPower.Mini) {
@@ -264,6 +280,7 @@ namespace NsmbDs {
         }
 
         private void Collect(NsmbItemKind item) {
+            LastCollected = item;
             motor.Power = NsmbBlocks.Collect(motor.Power, item);
             if (item == NsmbItemKind.Star) {
                 starFrames = StarFrames;

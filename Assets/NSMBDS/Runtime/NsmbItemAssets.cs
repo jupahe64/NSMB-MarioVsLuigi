@@ -10,6 +10,7 @@ namespace NsmbDs {
         public Sprite mini;
         public Sprite shell;
         public Sprite oneUp;
+        public Sprite[] goomba;
         public Avatar smallAvatar;
         public Avatar largeAvatar;
         public RuntimeAnimatorController smallController;

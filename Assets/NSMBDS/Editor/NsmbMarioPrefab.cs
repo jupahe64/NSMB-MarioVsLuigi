@@ -17,6 +17,7 @@ namespace NsmbDs.Editor {
         private const string LargeModel = "LargeMario";
         private const string LargeModelPath = "Assets/Models/Players/mario_big/mario_big_exported.fbx";
         private const string LargeControllerPath = "Assets/Animations/Player/Mario/LargeMario.controller";
+        private const string GoombaSheet = "Assets/Sprites/Atlases/Entity/goomba.png";
         private const string ItemAssetsPath = TargetFolder + "/NsmbItems.asset";
         private const string PowerupFolder = "Assets/QuantumUser/Resources/AssetObjects/Items/";
         private const string ShaderPath = "Assets/NSMBDS/Shaders/NsmbMario.shader";
@@ -77,12 +78,24 @@ namespace NsmbDs.Editor {
             items.mega = ReserveSprite("MegaMushroom");
             items.mini = ReserveSprite("MiniMushroom");
             items.shell = ReserveSprite("BlueShell");
+            items.goomba = SpritesOf(GoombaSheet);
             items.smallAvatar = AssetDatabase.LoadAllAssetsAtPath(SmallModelPath).OfAvatar();
             items.largeAvatar = AssetDatabase.LoadAllAssetsAtPath(LargeModelPath).OfAvatar();
             items.smallController = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(SmallControllerPath);
             items.largeController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(LargeControllerPath);
             EditorUtility.SetDirty(items);
             AssetDatabase.SaveAssets();
+        }
+
+        private static Sprite[] SpritesOf(string sheet) {
+            List<Sprite> sprites = new();
+            foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(sheet)) {
+                if (asset is Sprite sprite) {
+                    sprites.Add(sprite);
+                }
+            }
+            sprites.Sort((a, b) => EditorUtility.NaturalCompare(a.name, b.name));
+            return sprites.ToArray();
         }
 
         private static Sprite ReserveSprite(string item) {

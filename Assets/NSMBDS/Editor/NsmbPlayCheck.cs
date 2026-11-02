@@ -18,6 +18,7 @@ namespace NsmbDs.Editor {
         private static double nextStepTime;
         private static int step;
         private static float startX;
+        private static NsmbActor stomped;
 
         static NsmbPlayCheck() {
             if (SessionState.GetBool(ActiveKey, false)) {
@@ -108,15 +109,27 @@ namespace NsmbDs.Editor {
                 select.Player.Teleport(mushroom.transform.position.x * NsmbUnits.PixelsPerUnit, -mushroom.transform.position.y * NsmbUnits.PixelsPerUnit);
                 break;
             case 11:
-                Debug.Log($"[NSMBDS] Play check: after mushroom, power {select.Player.Motor.Power}, height {select.Player.Motor.BodyHeight}");
+                Debug.Log($"[NSMBDS] Play check: collected {select.Player.GetComponent<NsmbStage>().LastCollected}, power now {select.Player.Motor.Power}");
                 Capture("play_big");
                 CaptureCloseUp("play_big_close", select.Player);
-                select.LoadArea(select.FindEntry("C01_1").Value);
+                select.Player.GetComponent<NsmbStage>().Hurt();
+                select.Player.Teleport(344f, 479f);
                 break;
             case 12:
-                select.Player.Teleport(912f, 224f);
+                NsmbActor goomba = Object.FindAnyObjectByType<NsmbActor>();
+                Debug.Log($"[NSMBDS] Play check: actors {select.Player.GetComponent<NsmbStage>().Actors.AliveCount}, goomba at {goomba?.X}, {goomba?.Y}, power {select.Player.Motor.Power}, player {select.Player.X}");
+                Capture("play_goomba");
+                stomped = goomba;
+                select.Player.Teleport(goomba.X - 6f, goomba.Y - 40f);
                 break;
             case 13:
+                Debug.Log($"[NSMBDS] Play check: stomp, goomba gone {stomped == null}, power {select.Player.Motor.Power}, area start respawn {select.Player.X}");
+                select.LoadArea(select.FindEntry("C01_1").Value);
+                break;
+            case 14:
+                select.Player.Teleport(912f, 224f);
+                break;
+            case 15:
                 Debug.Log($"[NSMBDS] Play check: water {select.Player.Motor.Liquid} surface {select.Player.Motor.LiquidSurfaceY}, underwater {select.Player.Motor.Underwater}, at {select.Player.X}, {select.Player.Y}");
                 Capture("play_water");
                 SessionState.SetBool(ActiveKey, false);
