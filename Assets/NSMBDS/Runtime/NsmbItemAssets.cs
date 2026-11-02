@@ -11,6 +11,8 @@ namespace NsmbDs {
         public Sprite shell;
         public Sprite oneUp;
         public Sprite[] goomba;
+        public Sprite[] koopa;
+        public Sprite[] koopaRed;
         public Avatar smallAvatar;
         public Avatar largeAvatar;
         public RuntimeAnimatorController smallController;

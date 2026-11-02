@@ -13,6 +13,8 @@ namespace NsmbDs {
 
         private static readonly Dictionary<int, Type> Registry = new() {
             { 148, typeof(NsmbGoomba) },
+            { 149, typeof(NsmbKoopa) },
+            { 150, typeof(NsmbKoopa) },
         };
 
         private readonly NsmbStage stage;
@@ -74,6 +76,14 @@ namespace NsmbDs {
                 } else if (!keep.Contains(new Vector2(actor.X, actor.Y))) {
                     UnityEngine.Object.Destroy(actor.gameObject);
                     alive.RemoveAt(i);
+                }
+            }
+        }
+
+        public void DefeatTouching(NsmbActor source) {
+            foreach (NsmbActor actor in alive) {
+                if (actor != null && actor != source && !actor.Defeated && source.Touches(actor)) {
+                    actor.DefeatByActor();
                 }
             }
         }

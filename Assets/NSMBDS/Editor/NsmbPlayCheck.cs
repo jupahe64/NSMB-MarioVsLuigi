@@ -19,6 +19,7 @@ namespace NsmbDs.Editor {
         private static int step;
         private static float startX;
         private static NsmbActor stomped;
+        private static NsmbKoopa koopa;
 
         static NsmbPlayCheck() {
             if (SessionState.GetBool(ActiveKey, false)) {
@@ -124,12 +125,23 @@ namespace NsmbDs.Editor {
                 break;
             case 13:
                 Debug.Log($"[NSMBDS] Play check: stomp, goomba gone {stomped == null}, power {select.Player.Motor.Power}, area start respawn {select.Player.X}");
-                select.LoadArea(select.FindEntry("C01_1").Value);
+                select.Player.Teleport(1960f, 479f);
                 break;
             case 14:
-                select.Player.Teleport(912f, 224f);
+                Debug.Log($"[NSMBDS] Play check: koopa area, actors {select.Player.GetComponent<NsmbStage>().Actors.AliveCount}, player {select.Player.X}");
+                Capture("play_koopa");
+                koopa = Object.FindAnyObjectByType<NsmbKoopa>();
+                select.Player.Teleport(koopa.X - 4f, koopa.Y - 40f);
                 break;
             case 15:
+                Capture("play_shell");
+                Debug.Log($"[NSMBDS] Play check: stomped koopa, shell moving {koopa != null && koopa.IsMovingShell}, at {koopa?.X}, player {select.Player.X}");
+                select.LoadArea(select.FindEntry("C01_1").Value);
+                break;
+            case 16:
+                select.Player.Teleport(912f, 224f);
+                break;
+            case 17:
                 Debug.Log($"[NSMBDS] Play check: water {select.Player.Motor.Liquid} surface {select.Player.Motor.LiquidSurfaceY}, underwater {select.Player.Motor.Underwater}, at {select.Player.X}, {select.Player.Y}");
                 Capture("play_water");
                 SessionState.SetBool(ActiveKey, false);

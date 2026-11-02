@@ -18,6 +18,8 @@ namespace NsmbDs.Editor {
         private const string LargeModelPath = "Assets/Models/Players/mario_big/mario_big_exported.fbx";
         private const string LargeControllerPath = "Assets/Animations/Player/Mario/LargeMario.controller";
         private const string GoombaSheet = "Assets/Sprites/Atlases/Entity/goomba.png";
+        private const string KoopaSheet = "Assets/Sprites/Atlases/Entity/koopa.png";
+        private const string KoopaRedSheet = "Assets/Sprites/Atlases/Entity/koopa-red.png";
         private const string ItemAssetsPath = TargetFolder + "/NsmbItems.asset";
         private const string PowerupFolder = "Assets/QuantumUser/Resources/AssetObjects/Items/";
         private const string ShaderPath = "Assets/NSMBDS/Shaders/NsmbMario.shader";
@@ -79,6 +81,8 @@ namespace NsmbDs.Editor {
             items.mini = ReserveSprite("MiniMushroom");
             items.shell = ReserveSprite("BlueShell");
             items.goomba = SpritesOf(GoombaSheet);
+            items.koopa = SpritesOf(KoopaSheet);
+            items.koopaRed = SpritesOf(KoopaRedSheet);
             items.smallAvatar = AssetDatabase.LoadAllAssetsAtPath(SmallModelPath).OfAvatar();
             items.largeAvatar = AssetDatabase.LoadAllAssetsAtPath(LargeModelPath).OfAvatar();
             items.smallController = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(SmallControllerPath);

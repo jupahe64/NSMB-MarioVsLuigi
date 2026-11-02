@@ -84,8 +84,23 @@ namespace NsmbDs {
                 Player.VelocityY = StompBounceSpeed;
                 OnStomped();
             } else {
-                Stage.HurtPlayer();
+                OnPlayerTouch();
             }
+        }
+
+        /// <summary>The player walked into this actor.</summary>
+        protected virtual void OnPlayerTouch() {
+            Stage.HurtPlayer();
+        }
+
+        /// <summary>Hit by a moving shell or similar.</summary>
+        public virtual void DefeatByActor() {
+            Defeated = true;
+            Remove();
+        }
+
+        public bool Touches(NsmbActor other) {
+            return Mathf.Abs(other.X - X) < HalfWidth + other.HalfWidth && Mathf.Abs(other.Y - Y) < Height;
         }
 
         /// <summary>Moves with gravity and tile collision; walls reverse the actor.</summary>
