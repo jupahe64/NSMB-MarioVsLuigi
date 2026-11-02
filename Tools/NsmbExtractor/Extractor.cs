@@ -179,6 +179,23 @@ namespace NsmbExtractor {
             return broken.Count == 0;
         }
 
+        /// <summary>Lists the tiles of an area whose behaviour word matches a mask, for placing tests.</summary>
+        public static void FindTiles(NsmbGame game, string name, uint mask, TextWriter output) {
+            LevelArea area = game.LoadArea(name);
+            AreaTilesets tilesets = game.GetTilesets(area);
+            LevelGrid grid = game.ExpandArea(area, tilesets);
+            for (int y = 0; y < LevelGrid.Height; y++) {
+                for (int x = 0; x < LevelGrid.Width; x++) {
+                    ushort cell = grid.Cells[(y * LevelGrid.Width) + x];
+                    TilesetSlot slot = LevelGrid.SplitCell(cell, out int tile);
+                    uint word = cell != 0 && tile < tilesets[slot].Behaviors.Length ? tilesets[slot].Behaviors[tile] : 0;
+                    if ((word & mask) != 0) {
+                        output.WriteLine($"{x},{y} 0x{word:X8}");
+                    }
+                }
+            }
+        }
+
         /// <summary>Prints the tiles around each warp: # solid, P pipe or door, o entrance cell, and nearby sprites.</summary>
         public static void Surroundings(NsmbGame game, TextWriter output) {
             const int Reach = 4;

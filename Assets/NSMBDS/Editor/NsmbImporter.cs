@@ -143,6 +143,8 @@ namespace NsmbDs.Editor {
                         used.Add(cell);
                     }
                 }
+                // Not placed in levels, but every block turns into it once hit.
+                used.Add(NsmbBlocks.UsedBlockMap16);
             }
 
             Dictionary<string, TileGroup> groups = new();
@@ -175,7 +177,10 @@ namespace NsmbDs.Editor {
                     EnsureFolder($"{SceneFolder}/{row.World}");
                     BuildAreaScene(row, grids[row.Name], groups[row.TilesetGroup], material, scenePath);
                 }
-                entries.Add(new NsmbAreaIndex.Entry { name = row.Name, world = row.World, level = row.Level, area = row.Area, scenePath = scenePath });
+                entries.Add(new NsmbAreaIndex.Entry {
+                    name = row.Name, world = row.World, level = row.Level, area = row.Area, scenePath = scenePath,
+                    usedBlock = groups[row.TilesetGroup].Tiles[NsmbBlocks.UsedBlockMap16],
+                });
             }
 
             NsmbAreaIndex index = ScriptableObject.CreateInstance<NsmbAreaIndex>();

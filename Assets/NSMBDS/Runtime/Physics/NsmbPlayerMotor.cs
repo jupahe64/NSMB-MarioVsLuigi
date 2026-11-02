@@ -68,6 +68,12 @@ namespace NsmbDs {
 
         public float halfWidth = 6f;
         public float height = 13.44f;
+        public float bigHeight = 26.24f;
+        public float liquidEntrySpeedLimit = -5.625f;
+        public float liquidEntrySpeed = -1.875f;
+        public float liquidEntryDrag = 10.546875f;
+        public int liquidEntryFrames = 9;
+        public float liquidBodyCenter = 8f;
         public float groundSnap = 8f;
         public int hoverFrames = 3;
         public float wallProbe = 0.5f;
@@ -110,6 +116,7 @@ namespace NsmbDs {
         private NsmbJumpState previousJumpState;
         private float gravity;
         private float terminalVelocity;
+        private int liquidEntryLeft;
 
         /// <summary>Feet position in DS pixels, y growing downwards.</summary>
         public float X;
@@ -140,10 +147,24 @@ namespace NsmbDs {
         public bool WallslideLeft;
         public bool WallslideRight;
         public NsmbJumpState JumpState;
+        public NsmbPower Power;
+        public NsmbLiquidKind Liquid;
+
+        /// <summary>Pixels, y growing downwards. Below this the liquid is the player's problem.</summary>
+        public float LiquidSurfaceY = float.MaxValue;
 
         public event Action LandedStill = delegate { };
         public event Action Walljumped = delegate { };
         public event Action Paddled = delegate { };
+
+        /// <summary>A tile was hit from below: column, row.</summary>
+        public event Action<int, int> HeadHit = delegate { };
+
+        /// <summary>A ground pound landed on a tile: column, row.</summary>
+        public event Action<int, int> Pounded = delegate { };
+
+        /// <summary>Touching lava or poison.</summary>
+        public event Action KilledByLiquid = delegate { };
 
         public NsmbPlayerMotor(NsmbPlayerTuning tuning, NsmbTileSource tiles) {
             this.tuning = tuning;
@@ -157,6 +178,16 @@ namespace NsmbDs {
         public bool FastTurnaround => fastTurnaroundFrames > 0;
         public bool GroundpoundStanding => groundpoundStandFrames > 0;
         public bool CoyoteTime => coyoteTimeFrames > 0;
+        public NsmbTileSource Tiles => tiles;
+        public bool IsBig => Power != NsmbPower.Small && Power != NsmbPower.Mini;
+
+        /// <summary>Body height in pixels for the current power and pose.</summary>
+        public float BodyHeight {
+            get {
+                float height = IsBig ? tuning.bigHeight : tuning.height;
+                return IsBig && (Crouching || Sliding) ? height / 2f : height;
+            }
+        }
 
         public void Place(float x, float y) {
             X = x;
@@ -623,9 +654,6 @@ namespace NsmbDs {
             JumpState = NsmbJumpState.None;
 
             if (jumpBufferFrames > 0) {
-                if (Grounded) {
-                    VelocityY = tuning.swimJumpVelocity * 0.75f;
-                }
                 VelocityY += tuning.swimJumpVelocity;
                 Grounded = false;
                 jumpBufferFrames = 0;
@@ -707,6 +735,12 @@ namespace NsmbDs {
 
         private void StepGravity() {
             float[] accelerations = tuning.gravityAcceleration;
+            if (Underwater && !Groundpounding) {
+                accelerations = tuning.gravitySwimmingAcceleration;
+                gravity = accelerations[GravityStage()];
+                return;
+            }
+
             if (Grounded && !Underwater) {
                 gravity = accelerations[0];
                 return;
@@ -717,13 +751,9 @@ namespace NsmbDs {
                 return;
             }
 
-            if (Underwater) {
-                accelerations = tuning.gravitySwimmingAcceleration;
-            }
-
             int stage = GravityStage();
             gravity = accelerations[stage];
-            if (stage == 0 && !input.Jump && !Underwater) {
+            if (stage == 0 && !input.Jump) {
                 gravity = accelerations[accelerations.Length - 1];
             }
         }
@@ -770,11 +800,32 @@ namespace NsmbDs {
             TouchingLeftWall = WallAt(X - tuning.halfWidth - tuning.wallProbe);
             TouchingRightWall = WallAt(X + tuning.halfWidth + tuning.wallProbe);
             UpdateFloor();
-            Underwater = tiles.GetTileAt(X, Y - (tuning.height / 2f)).IsWater;
+            UpdateLiquid();
+        }
+
+        private void UpdateLiquid() {
+            bool inLiquid = Liquid != NsmbLiquidKind.None && Y >= LiquidSurfaceY;
+            if (Liquid != NsmbLiquidKind.Water) {
+                Underwater = false;
+                if (inLiquid) {
+                    KilledByLiquid();
+                }
+                return;
+            }
+
+            bool wasUnderwater = Underwater;
+            Underwater = Y - tuning.liquidBodyCenter >= LiquidSurfaceY;
+            if (Underwater && !wasUnderwater && VelocityY < tuning.liquidEntrySpeedLimit) {
+                VelocityY = tuning.liquidEntrySpeed;
+                liquidEntryLeft = tuning.liquidEntryFrames;
+            }
         }
 
         private void ApplyGravity() {
-            if (Decrement(ref hoverFrames)) {
+            if (liquidEntryLeft > 0) {
+                liquidEntryLeft--;
+                VelocityY += tuning.liquidEntryDrag * StepSeconds;
+            } else if (Decrement(ref hoverFrames)) {
                 VelocityY += gravity * StepSeconds;
             }
             VelocityY = Math.Max(VelocityY, terminalVelocity);
@@ -799,9 +850,10 @@ namespace NsmbDs {
 
         private bool WallAt(float x) {
             float lowest = Y - (Grounded ? tuning.groundSnap : 2f);
+            float height = BodyHeight;
             return tiles.GetTileAt(x, lowest).IsFullSolid
-                || tiles.GetTileAt(x, Y - (tuning.height / 2f)).IsFullSolid
-                || tiles.GetTileAt(x, Y - tuning.height + 1f).IsFullSolid;
+                || tiles.GetTileAt(x, Y - (height / 2f)).IsFullSolid
+                || tiles.GetTileAt(x, Y - height + 1f).IsFullSolid;
         }
 
         private void MoveY() {
@@ -823,15 +875,7 @@ namespace NsmbDs {
             Y += SpeedY;
 
             if (VelocityY > 0f) {
-                float head = Y - tuning.height;
-                foreach (float bodyX in new[] { X - tuning.halfWidth + 1f, X + tuning.halfWidth - 1f }) {
-                    NsmbTileBehavior tile = tiles.GetTileAt(bodyX, head);
-                    if (tile.IsFullSolid || tile.IsFlippedSlope) {
-                        Y = ((float) Math.Floor(head / NsmbTileSource.TileSize) * NsmbTileSource.TileSize) + NsmbTileSource.TileSize + tuning.height;
-                        VelocityY = 0f;
-                        break;
-                    }
-                }
+                HitCeiling();
                 return;
             }
 
@@ -840,6 +884,26 @@ namespace NsmbDs {
                 Y = landing;
                 VelocityY = 0f;
                 Grounded = true;
+                if (Groundpounding) {
+                    Pounded((int) Math.Floor(X / NsmbTileSource.TileSize), (int) Math.Floor(Y / NsmbTileSource.TileSize));
+                }
+            }
+        }
+
+        private void HitCeiling() {
+            float height = BodyHeight;
+            float head = Y - height;
+            int row = (int) Math.Floor(head / NsmbTileSource.TileSize);
+
+            // The column under the middle of the head counts first, as that is the block the player sees being hit.
+            foreach (float bodyX in new[] { X, X - tuning.halfWidth + 1f, X + tuning.halfWidth - 1f }) {
+                NsmbTileBehavior tile = tiles.GetTileAt(bodyX, head);
+                if (tile.IsFullSolid || tile.IsFlippedSlope || tile.IsHidden) {
+                    Y = (row * (float) NsmbTileSource.TileSize) + NsmbTileSource.TileSize + height;
+                    VelocityY = 0f;
+                    HeadHit((int) Math.Floor(bodyX / NsmbTileSource.TileSize), row);
+                    return;
+                }
             }
         }
 

@@ -31,6 +31,7 @@ namespace NsmbDs {
         private NsmbRegionMarker[] regions;
         private Camera view;
         private NsmbRegionMarker currentView;
+        private NsmbPower previousPower;
         private float pendingTime;
         private NsmbPlayerInput input;
         private Warp warp;
@@ -41,6 +42,9 @@ namespace NsmbDs {
         /// <summary>Asks the owner to load an area and place the player at an entrance.</summary>
         public event Action<int, int> TravelRequested;
 
+        /// <summary>After each 60 Hz step of the motor.</summary>
+        public event Action FrameStepped;
+
         public NsmbPlayerMotor Motor => motor;
         public NsmbPlayerInput CurrentInput => input;
         public float X => motor?.X ?? 0f;
@@ -50,6 +54,10 @@ namespace NsmbDs {
         public bool Grounded => motor != null && motor.Grounded;
         public bool InWarp => warp != Warp.None;
         public string AreaName => area != null ? area.areaName : "";
+        public NsmbArea Area => area;
+        public NsmbTile UsedBlock { get; set; }
+        public int Coins { get; set; }
+        public int ExtraLives { get; set; }
 
         public void Teleport(float x, float y) {
             motor.Place(x, y);
@@ -60,6 +68,7 @@ namespace NsmbDs {
 
         /// <summary>Stops the simulation before the current area unloads.</summary>
         public void LeaveArea() {
+            previousPower = motor?.Power ?? previousPower;
             motor = null;
             tiles = null;
             warp = Warp.None;
@@ -69,7 +78,9 @@ namespace NsmbDs {
             area = newArea;
             view = Camera.main;
             tiles = new NsmbTilemapSource(area.tilemap);
-            motor = new NsmbPlayerMotor(tuning, tiles);
+            NsmbPower power = motor?.Power ?? previousPower;
+            motor = new NsmbPlayerMotor(tuning, tiles) { Power = power };
+            motor.KilledByLiquid += Die;
             entrances = area.GetComponentsInChildren<NsmbEntranceMarker>();
             regions = area.GetComponentsInChildren<NsmbRegionMarker>();
             currentView = null;
@@ -85,7 +96,7 @@ namespace NsmbDs {
         private void PlaceAt(NsmbEntranceMarker entrance) {
             (float x, float y) = EntrancePixels(entrance);
             NsmbWarp warpData = new(entrance.type, x, y);
-            (float exitX, float exitY) = warpData.ExitPosition(tiles, tuning.halfWidth, tuning.height);
+            (float exitX, float exitY) = warpData.ExitPosition(tiles, tuning.halfWidth, motor.BodyHeight);
             (float stepX, float stepY) = warpData.EnterDirection;
             if (stepX == 0f && stepY == 0f) {
                 motor.Place(exitX, exitY);
@@ -148,6 +159,12 @@ namespace NsmbDs {
             return result;
         }
 
+        /// <summary>Back to the start of the area until lives and game over exist.</summary>
+        public void Die() {
+            motor.Power = NsmbPower.Small;
+            PlaceAt(area.FindEntrance(area.startEntrance));
+        }
+
         private void StepFrame() {
             if (warp != Warp.None) {
                 StepWarp();
@@ -155,12 +172,17 @@ namespace NsmbDs {
             }
 
             motor.Step(input);
+            FrameStepped?.Invoke();
+            if (motor == null) {
+                return;
+            }
+
             TryEnterWarp();
             if (warp == Warp.None) {
                 KeepInsideArea();
             }
             if (motor.Y > PitBottom() + PitMargin) {
-                PlaceAt(area.FindEntrance(area.startEntrance));
+                Die();
             }
         }
 
@@ -207,7 +229,7 @@ namespace NsmbDs {
 
                 (float x, float y) = EntrancePixels(entrance);
                 NsmbWarp candidate = new(entrance.type, x, y);
-                if ((allowMiniPipes || !candidate.IsMini) && candidate.CanEnter(motor, input, tuning.height)) {
+                if ((allowMiniPipes || !candidate.IsMini) && candidate.CanEnter(motor, input, motor.BodyHeight)) {
                     warpEntrance = entrance;
                     warp = Warp.Entering;
                     warpFrames = WarpFrames;
@@ -312,8 +334,8 @@ namespace NsmbDs {
                 return;
             }
 
-            GUI.Label(new Rect(Screen.width - 260f, 8f, 250f, 110f),
-                $"Pos {motor.X:F1}, {motor.Y:F1}\nSpeed {motor.SpeedX:F3}, {motor.SpeedY:F3}\n{(motor.Grounded ? "Grounded" : "Air")} {motor.JumpState}\nTile 0x{TileUnderFeet:X8}\nZ jump, X run, Up door, Down pipe");
+            GUI.Label(new Rect(Screen.width - 260f, 8f, 250f, 130f),
+                $"Coins {Coins}  Lives +{ExtraLives}  {motor.Power}\nPos {motor.X:F1}, {motor.Y:F1}\nSpeed {motor.SpeedX:F3}, {motor.SpeedY:F3}\n{(motor.Grounded ? "Grounded" : "Air")} {motor.JumpState}\nTile 0x{TileUnderFeet:X8}\nZ jump, X run, Up door, Down pipe");
         }
     }
 }

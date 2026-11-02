@@ -40,8 +40,9 @@ namespace NsmbRom.Tests {
         private const int SettleFrames = 60;
         private const int ApproachFrames = 60;
         private const float PipeApproach = 8f;
-        private const int KnownTightExits = 3;
-        private const int KnownUnreachable = 1;
+        private const int KnownTightExits = 9;
+        // Most of these are buried under breakable stone or bricks.
+        private const int KnownUnreachable = 7;
 
         private static NsmbPlayerMotor Motor(NsmbTileSource tiles, float x, float y) {
             NsmbPlayerMotor motor = new(new NsmbPlayerTuning(), tiles);
@@ -194,3 +195,4 @@ namespace NsmbRom.Tests {
         }
     }
 }
+

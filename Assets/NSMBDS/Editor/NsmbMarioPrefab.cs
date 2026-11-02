@@ -14,11 +14,16 @@ namespace NsmbDs.Editor {
         private const string ModelParent = "ModelParent";
         private const string Models = "Models";
         private const string SmallModel = "SmallMario";
+        private const string LargeModel = "LargeMario";
+        private const string LargeModelPath = "Assets/Models/Players/mario_big/mario_big_exported.fbx";
+        private const string LargeControllerPath = "Assets/Animations/Player/Mario/LargeMario.controller";
+        private const string ItemAssetsPath = TargetFolder + "/NsmbItems.asset";
+        private const string PowerupFolder = "Assets/QuantumUser/Resources/AssetObjects/Items/";
         private const string ShaderPath = "Assets/NSMBDS/Shaders/NsmbMario.shader";
         private const string MaterialFolder = "Assets/NSMBDS/Materials";
         private const string MainTexture = "_MainTex";
         private const string IsEyeTexture = "_IsEyeTexture";
-        private static readonly string[] HiddenParts = { "head_nocap", "cap_in_hand" };
+        private static readonly string[] HiddenParts = { "head_nocap", "cap_in_hand", "Hammer", "Propeller", "blue_shell", "GoldBlock" };
 
         [MenuItem("NSMB DS/Build Mario Prefab")]
         public static void Build() {
@@ -29,8 +34,14 @@ namespace NsmbDs.Editor {
 
             KeepOnly(parent.transform, Models);
             Transform models = parent.transform.Find(Models);
-            KeepOnly(models, SmallModel);
+            for (int i = models.childCount - 1; i >= 0; i--) {
+                Transform child = models.GetChild(i);
+                if (child.name != SmallModel && child.name != LargeModel) {
+                    Object.DestroyImmediate(child.gameObject);
+                }
+            }
             models.Find(SmallModel).gameObject.SetActive(true);
+            models.Find(LargeModel).gameObject.SetActive(false);
             StripBehaviours(parent);
             HideParts(root);
             CreateFolder(MaterialFolder);
@@ -48,7 +59,44 @@ namespace NsmbDs.Editor {
             CreateFolder(TargetFolder);
             PrefabUtility.SaveAsPrefabAsset(root, TargetPath);
             Object.DestroyImmediate(root);
+            BuildItemAssets();
             Debug.Log($"[NSMBDS] Wrote {TargetPath}");
+        }
+
+        private static void BuildItemAssets() {
+            NsmbItemAssets items = AssetDatabase.LoadAssetAtPath<NsmbItemAssets>(ItemAssetsPath);
+            if (items == null) {
+                items = ScriptableObject.CreateInstance<NsmbItemAssets>();
+                AssetDatabase.CreateAsset(items, ItemAssetsPath);
+            }
+
+            items.mushroom = ReserveSprite("Mushroom");
+            items.oneUp = items.mushroom;
+            items.fireFlower = ReserveSprite("FireFlower");
+            items.star = ReserveSprite("Starman");
+            items.mega = ReserveSprite("MegaMushroom");
+            items.mini = ReserveSprite("MiniMushroom");
+            items.shell = ReserveSprite("BlueShell");
+            items.smallAvatar = AssetDatabase.LoadAllAssetsAtPath(SmallModelPath).OfAvatar();
+            items.largeAvatar = AssetDatabase.LoadAllAssetsAtPath(LargeModelPath).OfAvatar();
+            items.smallController = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(SmallControllerPath);
+            items.largeController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(LargeControllerPath);
+            EditorUtility.SetDirty(items);
+            AssetDatabase.SaveAssets();
+        }
+
+        private static Sprite ReserveSprite(string item) {
+            foreach (string guid in AssetDatabase.FindAssets(item + " t:ScriptableObject")) {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (Path.GetFileNameWithoutExtension(path) == item) {
+                    SerializedProperty sprite = new SerializedObject(AssetDatabase.LoadMainAssetAtPath(path)).FindProperty("ReserveSprite");
+                    if (sprite != null) {
+                        return sprite.objectReferenceValue as Sprite;
+                    }
+                }
+            }
+            Debug.LogWarning($"[NSMBDS] No sprite for {item}");
+            return null;
         }
 
         public static void BuildBatch() {
@@ -66,8 +114,10 @@ namespace NsmbDs.Editor {
             foreach (Transform node in root.GetComponentsInChildren<Transform>(true)) {
                 // The base project's player layer gets a coloured outline from the renderer.
                 node.gameObject.layer = 0;
-                if (System.Array.IndexOf(HiddenParts, node.name) >= 0) {
-                    node.gameObject.SetActive(false);
+                foreach (string part in HiddenParts) {
+                    if (node.name.Contains(part)) {
+                        node.gameObject.SetActive(false);
+                    }
                 }
             }
         }

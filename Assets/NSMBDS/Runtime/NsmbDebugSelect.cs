@@ -183,6 +183,7 @@ namespace NsmbDs {
                 player = CreatePlayer();
                 player.TravelRequested += Travel;
             }
+            player.UsedBlock = currentEntry.usedBlock;
             player.EnterArea(current, entrance >= 0 ? entrance : current.startEntrance);
         }
 
@@ -191,6 +192,7 @@ namespace NsmbDs {
             mario.name = "Mario";
             NsmbPlayer player = mario.AddComponent<NsmbPlayer>();
             mario.AddComponent<NsmbPlayerAnimator>();
+            mario.AddComponent<NsmbStage>();
             return player;
         }
     }

@@ -14,6 +14,7 @@ namespace NsmbDs {
             public int level;
             public int area;
             public string scenePath;
+            public NsmbTile usedBlock;
         }
 
         public List<Entry> entries = new();

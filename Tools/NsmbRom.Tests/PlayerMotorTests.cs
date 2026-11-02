@@ -327,14 +327,9 @@ namespace NsmbRom.Tests {
 
         [Fact]
         public void SwimsUpOnPress() {
-            TestTiles tiles = new() { GroundRow = 40 };
-            for (int column = 0; column < 20; column++) {
-                for (int row = 0; row < 40; row++) {
-                    tiles.Tiles[(column, row)] = 0x02000000;
-                }
-            }
-
-            NsmbPlayerMotor motor = new(new NsmbPlayerTuning(), tiles);
+            NsmbPlayerMotor motor = new(new NsmbPlayerTuning(), new TestTiles { GroundRow = 40 });
+            motor.Liquid = NsmbLiquidKind.Water;
+            motor.LiquidSurfaceY = 200f;
             motor.Place(88f, 300f);
             Run(motor, default, 30);
             Assert.True(motor.Underwater);

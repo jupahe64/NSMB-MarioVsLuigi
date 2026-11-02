@@ -94,6 +94,24 @@ namespace NsmbDs.Editor {
                 }
                 Debug.Log($"[NSMBDS] Play check: tilemap bounds {select.Current.tilemap.cellBounds}, tile at feet 0x{select.Player.TileUnderFeet:X8}, renderer on {select.Current.tilemap.GetComponent<UnityEngine.Tilemaps.TilemapRenderer>().enabled}");
                 Capture("play_after_pipe");
+                select.LoadArea(select.FindEntry("A01_1").Value);
+                break;
+            case 9:
+                select.Player.Teleport(22f * 16f + 8f, 479f);
+                select.Player.ScriptedInput = new NsmbPlayerInput { Jump = true };
+                break;
+            case 10:
+                select.Player.ScriptedInput = default(NsmbPlayerInput);
+                Debug.Log($"[NSMBDS] Play check: block hit, tile now 0x{(select.Current.tilemap.GetTile(new Vector3Int(22, -27, 0)) as NsmbTile)?.behavior:X8}, items {Object.FindObjectsByType<NsmbItem>(FindObjectsSortMode.None).Length}, power {select.Player.Motor.Power}, coins {select.Player.Coins}");
+                Capture("play_block_hit");
+                select.LoadArea(select.FindEntry("C01_1").Value);
+                break;
+            case 11:
+                select.Player.Teleport(912f, 224f);
+                break;
+            case 12:
+                Debug.Log($"[NSMBDS] Play check: water {select.Player.Motor.Liquid} surface {select.Player.Motor.LiquidSurfaceY}, underwater {select.Player.Motor.Underwater}, at {select.Player.X}, {select.Player.Y}");
+                Capture("play_water");
                 SessionState.SetBool(ActiveKey, false);
                 EditorApplication.update -= Tick;
                 EditorApplication.Exit(0);

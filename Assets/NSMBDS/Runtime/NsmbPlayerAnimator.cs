@@ -6,6 +6,9 @@ namespace NsmbDs {
     [RequireComponent(typeof(NsmbPlayer))]
     public sealed class NsmbPlayerAnimator : MonoBehaviour {
         private const string ModelPath = "ModelParent/Models";
+        private const string SmallModelName = "SmallMario";
+        private const string LargeModelName = "LargeMario";
+        private const string AssetsResource = "NsmbItems";
         private const float SideAngle = 67.5f;
         private const float MaxRotationPerSecond = 2000f;
         private const float WalkAnimationSpeed = 2f;
@@ -34,12 +37,19 @@ namespace NsmbDs {
         private bool rotateInstantly;
         private bool wasTurnaround;
         private int eyeState;
+        private NsmbItemAssets assets;
+        private GameObject smallModel;
+        private GameObject largeModel;
+        private bool showingLarge;
 
         private void Awake() {
             player = GetComponent<NsmbPlayer>();
             animator = GetComponent<Animator>();
             modelRoot = transform.Find(ModelPath);
             renderers = GetComponentsInChildren<Renderer>(true);
+            assets = Resources.Load<NsmbItemAssets>(AssetsResource);
+            smallModel = modelRoot.Find(SmallModelName)?.gameObject;
+            largeModel = modelRoot.Find(LargeModelName)?.gameObject;
             materialBlock = new MaterialPropertyBlock();
             rotationTarget = Quaternion.Euler(0f, 180f - SideAngle, 0f);
             StartCoroutine(BlinkRoutine());
@@ -53,13 +63,26 @@ namespace NsmbDs {
                 return;
             }
 
+            UpdateModel();
             UpdateParameters();
             UpdateFacing();
             materialBlock.SetFloat(ParamEyeState, eyeState);
-            materialBlock.SetFloat(ParamModelScale, modelRoot.lossyScale.x * SmallModelScale);
+            materialBlock.SetFloat(ParamModelScale, modelRoot.lossyScale.x * (showingLarge ? 1f : SmallModelScale));
             foreach (Renderer model in renderers) {
                 model.SetPropertyBlock(materialBlock);
             }
+        }
+
+        private void UpdateModel() {
+            if (motor.IsBig == showingLarge || smallModel == null || largeModel == null || assets == null) {
+                return;
+            }
+
+            showingLarge = motor.IsBig;
+            smallModel.SetActive(!showingLarge);
+            largeModel.SetActive(showingLarge);
+            animator.avatar = showingLarge ? assets.largeAvatar : assets.smallAvatar;
+            animator.runtimeAnimatorController = showingLarge ? assets.largeController : assets.smallController;
         }
 
         private void Follow(NsmbPlayerMotor newMotor) {

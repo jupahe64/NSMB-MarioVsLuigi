@@ -5,6 +5,9 @@ namespace NsmbDs {
     public readonly struct NsmbTileBehavior {
         private const uint Solid = 0x0001;
         private const uint Coin = 0x0002;
+        private const uint Question = 0x0004;
+        private const uint Explodable = 0x0008;
+        private const uint Brick = 0x0010;
         private const uint Slope = 0x0020;
         private const uint FlippedSlope = 0x0040;
         private const uint DoorOrPipe = 0x0100;
@@ -30,6 +33,9 @@ namespace NsmbDs {
         public bool IsFlippedSlope => (Flags & FlippedSlope) != 0;
         public bool IsSolidOnTop => (Flags & SolidOnTop) != 0;
         public bool IsCoin => (Flags & Coin) != 0;
+        public bool IsQuestion => (Flags & Question) != 0;
+        public bool IsBrick => (Flags & Brick) != 0;
+        public bool IsHidden => (Flags & Invisible) != 0;
         public bool IsPipe => (Flags & DoorOrPipe) != 0;
         public bool IsWater => (Flags & Water) != 0;
         public bool IsClimbable => (Flags & Climbable) != 0;
@@ -43,7 +49,7 @@ namespace NsmbDs {
                 if (IsSlope || IsFlippedSlope || IsSolidOnTop || (Flags & Invisible) != 0) {
                     return false;
                 }
-                return (Flags & (Solid | PartialSolid)) != 0;
+                return (Flags & (Solid | PartialSolid | Explodable | Brick)) != 0;
             }
         }
 
