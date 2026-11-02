@@ -12,6 +12,7 @@ namespace NsmbDs {
         private const int WarpFrames = 32;
         private const float PitMargin = 48f;
         private const float ViewProbe = 0.25f;
+        private const float AreaEdgeMargin = 0f;
         private const float DepthNormal = -4f;
         private const float DepthInPipe = 1f;
 
@@ -115,8 +116,21 @@ namespace NsmbDs {
             return (pixels.x, -pixels.y);
         }
 
+        /// <summary>Stops the realtime loop, so a check can step exact frames.</summary>
+        public bool ManualStepping { get; set; }
+
+        /// <summary>One 60 Hz frame with the given input, for frame-exact comparison with the game.</summary>
+        public void StepManually(in NsmbPlayerInput frameInput) {
+            input = frameInput;
+            StepFrame();
+            if (motor != null) {
+                UpdateTransform();
+                UpdateCamera();
+            }
+        }
+
         private void Update() {
-            if (motor == null) {
+            if (motor == null || ManualStepping) {
                 return;
             }
 
@@ -250,7 +264,7 @@ namespace NsmbDs {
 
             Rect rect = region.WorldRect;
             float y = Mathf.Clamp(-motor.Y / NsmbUnits.PixelsPerUnit, rect.yMin + ViewProbe, rect.yMax - ViewProbe);
-            float left = (rect.xMin * NsmbUnits.PixelsPerUnit) + tuning.halfWidth;
+            float left = (rect.xMin * NsmbUnits.PixelsPerUnit) + AreaEdgeMargin;
             float right = (rect.xMax * NsmbUnits.PixelsPerUnit) - tuning.halfWidth;
             if (ViewAt(new Vector2(rect.xMin - ViewProbe, y)) != null) {
                 left = float.MinValue;

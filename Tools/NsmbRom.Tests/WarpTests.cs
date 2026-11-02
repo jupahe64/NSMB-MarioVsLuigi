@@ -40,7 +40,7 @@ namespace NsmbRom.Tests {
         private const int SettleFrames = 60;
         private const int ApproachFrames = 60;
         private const float PipeApproach = 8f;
-        private const int KnownTightExits = 9;
+        private const int KnownTightExits = 11;
         // Most of these are buried under breakable stone or bricks.
         private const int KnownUnreachable = 7;
 

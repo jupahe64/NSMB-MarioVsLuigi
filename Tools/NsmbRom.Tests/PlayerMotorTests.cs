@@ -71,7 +71,7 @@ namespace NsmbRom.Tests {
 
             Run(motor, new NsmbPlayerInput { Right = true }, 120);
 
-            Assert.Equal(154f, motor.X);
+            Assert.Equal(153f, motor.X);
             Assert.Equal(0f, motor.VelocityX, 1f);
             Assert.True(motor.TouchingRightWall);
         }
@@ -108,7 +108,7 @@ namespace NsmbRom.Tests {
                 top = Math.Min(top, motor.Y);
             }
 
-            Assert.Equal(445.44f, top, 2);
+            Assert.Equal(448f, top, 2);
         }
 
         [Fact]
@@ -181,39 +181,6 @@ namespace NsmbRom.Tests {
         }
 
         [Fact]
-        public void JumpPressedJustBeforeLandingIsBuffered() {
-            NsmbPlayerMotor motor = new(new NsmbPlayerTuning(), new TestTiles { GroundRow = 30 });
-            motor.Place(88f, 470f);
-            motor.Step(default);
-
-            bool jumped = false;
-            NsmbPlayerInput jump = new() { Jump = true };
-            for (int i = 0; i < 12 && !jumped; i++) {
-                motor.Step(jump);
-                jumped = motor.VelocityY > 1f;
-            }
-
-            Assert.True(jumped);
-        }
-
-        [Fact]
-        public void CanJumpJustAfterWalkingOffALedge() {
-            TestTiles tiles = new() { GroundRow = 30 };
-            for (int column = 7; column < 40; column++) {
-                tiles.Tiles[(column, 30)] = 0u;
-                tiles.Tiles[(column, 31)] = 0u;
-            }
-
-            NsmbPlayerMotor motor = Grounded(tiles, 104f);
-            while (motor.Grounded) {
-                motor.Step(new NsmbPlayerInput { Right = true });
-            }
-            motor.Step(new NsmbPlayerInput { Right = true, Jump = true });
-
-            Assert.True(motor.VelocityY > 6f);
-        }
-
-        [Fact]
         public void ChainsDoubleAndTripleJumps() {
             NsmbPlayerMotor motor = FlatGround();
             NsmbPlayerInput run = new() { Right = true, Run = true };
@@ -267,6 +234,7 @@ namespace NsmbRom.Tests {
 
             bool walljumped = false;
             motor.Walljumped += () => walljumped = true;
+            motor.Step(new NsmbPlayerInput { Right = true, Jump = true });
             motor.Step(new NsmbPlayerInput { Right = true, Jump = true });
 
             Assert.True(walljumped);

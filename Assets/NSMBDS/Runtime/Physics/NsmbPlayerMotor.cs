@@ -4,6 +4,67 @@ namespace NsmbDs {
     /// <summary>Tunable movement values, copied from the base project's MarioPhysics asset. Speeds are units per second, y up.</summary>
     [Serializable]
     public sealed class NsmbPlayerTuning {
+        // Measured from the running game, in DS pixels and frames.
+        public float maxWalkSpeed = 1.5f;
+        public float maxRunSpeed = 3f;
+        public float startAcceleration = 0.0703125f;
+        public float startAccelerationBelow = 0.5625f;
+        public float walkAccelerationPx = 0.03515625f;
+        public float runAcceleration = 0.04296875f;
+        public float runAccelerationMid = 0.03125f;
+        public float runAccelerationHigh = 0.0234375f;
+        public float runMidSpeed = 1.5f;
+        public float runHighSpeed = 2.25f;
+        public float brakeDeceleration = 0.03515625f;
+        public float skidDeceleration = 0.09375f;
+        public float skidStopSpeed = 1.5f;
+        public int turnPauseFrames = 9;
+        public float turnAcceleration = 0.25f;
+        public float turnBoostUntil = 1.75f;
+        public float jumpSpeedStanding = 3.59375f;
+        public float jumpSpeedMid = 3.71875f;
+        public float jumpSpeedWalking = 3.84375f;
+        public float jumpMidFrom = 1f;
+        public float jumpWalkFrom = 1.5f;
+        public float jumpRunFrom = 3f;
+        public float ledgeDrop = 2.34375f;
+        public float ledgeHoverSpeed = -0.64453125f;
+        public int ledgeHoverFrames = 5;
+        public int turnStartFrames = 3;
+        public float wallPushSpeed = 1.875f;
+
+        // Speed limits on slopes, measured at walk and run. Steep is 45 degrees, shallow 2:1.
+        public float steepAngle = 30f;
+        public float steepUpWalk = 0.75f;
+        public float steepUpRun = 1.5f;
+        public float steepDownWalk = 2.15625f;
+        public float steepDownRun = 4.3125f;
+        public float shallowUpWalk = 1.03125f;
+        public float shallowUpRun = 2.0625f;
+        public float shallowDownWalk = 1.8f;
+        public float shallowDownRun = 3.5f;
+        public float slopeUpDeceleration = 0.05859375f;
+        public float shallowUpAcceleration = 0.046875f;
+        public float steepDownAcceleration = 0.125f;
+        public float shallowDownAcceleration = 0.0625f;
+        public float overspeedBrake = 0.03125f;
+        public float jumpSpeedRunning = 3.875f;
+        public float gravityPx = 0.34375f;
+        public float gravityRisingHeld = 0.0625f;
+        public float gravityRisingMid = 0.25f;
+        public float gravityFalling = 0.25f;
+        public float heldFastAbove = 2.5f;
+        public float heldMidAbove = 1.5f;
+        public float fallSlowBelow = 2f;
+
+        // Tile sensors of small Mario, from the sensor tables in memory.
+        public float feetLeft = -5f;
+        public float feetRight = 4f;
+        public float headLeft = -2f;
+        public float headRight = 1f;
+        public float sideLow = 4f;
+        public float sideHigh = 11f;
+
         public float[] walkMaxVelocity = { 0.9375f, 2.8125f, 4.21875f, 5.625f, 8.4375f };
         public float[] walkAcceleration = { 7.91015625f, 3.955081725f, 3.515625f, 2.63671875f, 84.375f };
         public float[] walkIceAcceleration = { 1.9775390625f, 3.955081725f, 3.515625f, 2.63671875f, 84.375f };
@@ -23,30 +84,30 @@ namespace NsmbDs {
         public float slopeMaxSpeedPerDegree = -0.03047180176f;
         public float crouchOffEdgeVelocity = -3.75f;
 
-        public int jumpBufferFrames = 12;
-        public int coyoteTimeFrames = 3;
+        public int jumpBufferFrames = 1;
+        public int coyoteTimeFrames = 1;
         public int specialJumpLandingFrames = 12;
         public float jumpVelocity = 6.62109375f;
         public float jumpSpeedBonusVelocity = 0.46875f;
         public float jumpTripleBonusVelocity = 0.5f;
         public float walljumpHorizontalVelocity = 4.21875f;
         public float walljumpVerticalVelocity = 6.4453125f;
-        public int walljumpFrames = 16;
+        public int walljumpFrames = 1;
         public int wallslideEndFrames = 16;
 
         public float[] gravityVelocity = { 4.16015625f, 2.109375f, 0f, -5.859375f };
         public float[] gravityAcceleration = { -7.03125f, -28.125f, -38.671875f, -28.125f, -38.671875f };
         public float[] gravitySwimmingVelocity = { 0f };
         public float[] gravitySwimmingAcceleration = { -4.833984375f, -3.076171875f };
-        public float gravityGroundpoundStart = 0.15f;
+        public float gravityGroundpoundStart = 0f;
         public float terminalVelocity = -7.5f;
         public float terminalVelocityWallslide = -4.6875f;
         public float terminalVelocityGroundpound = -11.25f;
 
         public bool groundpoundWhileHoldingSideways = true;
         public int groundpoundInputDelayFrames = 5;
-        public int groundpoundStartFrames = 16;
-        public float groundpoundStartVelocity = 1.5f;
+        public int groundpoundStartFrames = 17;
+        public float groundpoundStartVelocity = 1.875f;
         public int groundpoundStandFrames = 15;
         public int groundpoundCancelFrames = 12;
 
@@ -66,17 +127,18 @@ namespace NsmbDs {
         public float slideSlowAcceleration = 5.2734375f;
         public float slideMinimumAngle = 12.5f;
 
-        public float halfWidth = 6f;
-        public float height = 13.44f;
-        public float bigHeight = 26.24f;
+        public float halfWidth = 7f;
+        public float sideLeft = 8f;
+        public float height = 16f;
+        public float bigHeight = 32f;
         public float liquidEntrySpeedLimit = -5.625f;
         public float liquidEntrySpeed = -1.875f;
         public float liquidEntryDrag = 10.546875f;
         public int liquidEntryFrames = 9;
         public float liquidBodyCenter = 8f;
         public float groundSnap = 8f;
-        public int hoverFrames = 3;
-        public float wallProbe = 0.5f;
+        public int hoverFrames = 0;
+        public float wallProbe = 1f;
     }
 
     public struct NsmbPlayerInput {
@@ -96,6 +158,7 @@ namespace NsmbDs {
         private const float StepSeconds = 1f / 60f;
         private const float PixelsPerFrame = 32f / 60f;
         private const float SmallSpeed = 0.05f;
+        private const int GroundpoundHoldFrames = 6;
 
         private readonly NsmbPlayerTuning tuning;
         private readonly NsmbTileSource tiles;
@@ -117,6 +180,14 @@ namespace NsmbDs {
         private float gravity;
         private float terminalVelocity;
         private int liquidEntryLeft;
+        private int turnPause;
+        private bool turnBoost;
+        private bool stopAfterMove;
+        private bool jumpHeldSinceTakeoff;
+        private bool tookOff;
+        private int turnStartLeft;
+        private bool walljumpPending;
+        private bool walljumpLocked;
 
         /// <summary>Feet position in DS pixels, y growing downwards.</summary>
         public float X;
@@ -210,6 +281,12 @@ namespace NsmbDs {
             groundpoundStartFrames = 0;
             fastTurnaroundFrames = 0;
             hoverFrames = 0;
+            turnPause = 0;
+            turnBoost = false;
+            stopAfterMove = false;
+            jumpHeldSinceTakeoff = false;
+            walljumpPending = false;
+            walljumpLocked = false;
         }
 
         /// <summary>Stops at the given limits, like an invisible wall.</summary>
@@ -245,8 +322,12 @@ namespace NsmbDs {
             StepTerminalVelocity();
             StepFacingDirection();
 
+            // Gravity comes before moving, except on the frame a jump or kick set the speed.
+            if (!tookOff) {
+                ApplyGravity();
+            }
+            tookOff = false;
             Move();
-            ApplyGravity();
             previousInput = input;
         }
 
@@ -368,7 +449,7 @@ namespace NsmbDs {
             VelocityX = 0f;
             VelocityY = groundpoundStartFrames switch {
                 0 => tuning.terminalVelocityGroundpound,
-                >= 4 => tuning.groundpoundStartVelocity,
+                >= GroundpoundHoldFrames => tuning.groundpoundStartVelocity,
                 _ => 0f,
             };
         }
@@ -387,14 +468,6 @@ namespace NsmbDs {
 
             if (!Sliding) {
                 return;
-            }
-
-            if (Grounded && validFloorAngle) {
-                float runningMax = tuning.walkMaxVelocity[tuning.runSpeedStage];
-                bool uphill = Sign(FloorAngle) != Sign(VelocityX);
-                float speed = StepSeconds * 5f * (uphill ? Clamp01(1f - (Math.Abs(VelocityX) / runningMax)) : 4f);
-                float limit = runningMax * 1.25f;
-                VelocityX = Math.Max(-limit, Math.Min(limit, VelocityX + ((float) Math.Sin(FloorAngle * Math.PI / 180f) * speed)));
             }
 
             bool stationary = Math.Abs(VelocityX) < 0.01f && Grounded;
@@ -423,6 +496,17 @@ namespace NsmbDs {
 
             if (!Grounded || Underwater) {
                 Skidding = false;
+            }
+
+            // After a wall jump the sideways speed stays until landing.
+            walljumpLocked &= !Grounded;
+            if (walljumpLocked) {
+                return;
+            }
+
+            if (!Underwater && !Sliding) {
+                StepMeasuredSpeed();
+                return;
             }
 
             float[] maxArray = tuning.walkMaxVelocity;
@@ -467,6 +551,104 @@ namespace NsmbDs {
             }
 
             Crouching &= !Sliding;
+        }
+
+        // The walking and running rules measured from the game; replays stay within a pixel of it.
+        private void StepMeasuredSpeed() {
+            float speedX = SpeedX;
+            int direction = Crouching && Grounded ? 0 : (input.Right ? 1 : 0) - (input.Left ? 1 : 0);
+
+            // Standing and pressing the way Mario is not facing: he turns before moving.
+            if (Grounded && speedX == 0f && direction != 0 && direction > 0 != FacingRight && turnPause == 0) {
+                turnStartLeft = tuning.turnStartFrames;
+            }
+            if (turnStartLeft > 0) {
+                turnStartLeft--;
+                direction = 0;
+            }
+
+            if (!Grounded && ((direction > 0 && TouchingRightWall) || (direction < 0 && TouchingLeftWall))) {
+                speedX = 0f;
+            }
+
+            if (turnPause > 0) {
+                turnPause--;
+                speedX = 0f;
+                if (turnPause == 0 && direction != 0) {
+                    speedX = direction * tuning.turnAcceleration;
+                    turnBoost = true;
+                }
+            } else if (direction == 0) {
+                Skidding = false;
+                turnBoost = false;
+                speedX = speedX > 0f ? Math.Max(0f, speedX - tuning.brakeDeceleration) : Math.Min(0f, speedX + tuning.brakeDeceleration);
+            } else if (speedX * direction < 0f) {
+                float speed = Math.Abs(speedX);
+                Skidding |= speed > tuning.skidStopSpeed;
+                float stopAt = input.Run ? tuning.skidDeceleration : tuning.skidStopSpeed;
+                if (Skidding && speed <= stopAt) {
+                    speedX = Math.Sign(speedX) * (speed - tuning.skidDeceleration);
+                    stopAfterMove = true;
+                    Skidding = false;
+                    turnPause = Grounded ? tuning.turnPauseFrames : 0;
+                } else {
+                    speedX = Math.Sign(speedX) * Math.Max(0f, speed - tuning.skidDeceleration);
+                }
+            } else if (turnBoost) {
+                float boosted = Math.Abs(speedX) + tuning.turnAcceleration;
+                turnBoost = boosted < tuning.turnBoostUntil;
+                speedX = direction * Math.Min(boosted, tuning.turnBoostUntil);
+            } else {
+                float limit = input.Run ? tuning.maxRunSpeed : tuning.maxWalkSpeed;
+                float acceleration = 0f;
+                float brake = tuning.overspeedBrake;
+                bool onSlope = Grounded && FloorAngle != 0f;
+                if (onSlope) {
+                    bool steep = Math.Abs(FloorAngle) >= tuning.steepAngle;
+                    if (Sign(FloorAngle) != direction) {
+                        limit = steep ? (input.Run ? tuning.steepUpRun : tuning.steepUpWalk) : (input.Run ? tuning.shallowUpRun : tuning.shallowUpWalk);
+                        brake = tuning.slopeUpDeceleration;
+                        acceleration = steep ? 0f : tuning.shallowUpAcceleration;
+                    } else {
+                        limit = steep ? (input.Run ? tuning.steepDownRun : tuning.steepDownWalk) : (input.Run ? tuning.shallowDownRun : tuning.shallowDownWalk);
+                        acceleration = steep ? tuning.steepDownAcceleration : tuning.shallowDownAcceleration;
+                    }
+                }
+
+                float current = Math.Abs(speedX);
+                if (current > limit) {
+                    // Running off a slope drops straight to the run limit.
+                    speedX = direction * (input.Run && !onSlope ? limit : Math.Max(limit, current - brake));
+                } else {
+                    float step = acceleration > 0f ? acceleration : MeasuredAcceleration(current);
+                    speedX = direction * Math.Min(limit, current + step);
+                }
+            }
+
+            VelocityX = speedX / PixelsPerFrame;
+        }
+
+        private float MeasuredAcceleration(float speed) {
+            if (speed < tuning.startAccelerationBelow) {
+                return tuning.startAcceleration;
+            }
+            if (!input.Run) {
+                return tuning.walkAccelerationPx;
+            }
+            if (speed < tuning.runMidSpeed) {
+                return tuning.runAcceleration;
+            }
+            return speed < tuning.runHighSpeed ? tuning.runAccelerationMid : tuning.runAccelerationHigh;
+        }
+
+        private float MeasuredJumpSpeed(float speed) {
+            if (speed < tuning.jumpMidFrom) {
+                return tuning.jumpSpeedStanding;
+            }
+            if (speed < tuning.jumpWalkFrom) {
+                return tuning.jumpSpeedMid;
+            }
+            return speed < tuning.jumpRunFrom ? tuning.jumpSpeedWalking : tuning.jumpSpeedRunning;
         }
 
         private void WalkInDirection(int direction, float acc, float[] maxArray, int maxStage, bool uphill) {
@@ -621,12 +803,8 @@ namespace NsmbDs {
             WasGrounded = false;
             Grounded = false;
 
-            float walkSpeed = tuning.walkMaxVelocity[1];
-            float alpha = Clamp01(Math.Abs(VelocityX) - walkSpeed + (walkSpeed * 0.5f));
-            float newY = tuning.jumpVelocity + (tuning.jumpSpeedBonusVelocity * alpha);
-            if (Sign(VelocityX) != 0 && Sign(VelocityX) != Sign(FloorAngle)) {
-                newY += Math.Abs(FloorAngle) * 0.01f * alpha;
-            }
+            float newY = MeasuredJumpSpeed(Math.Abs(SpeedX)) / PixelsPerFrame;
+            jumpHeldSinceTakeoff = true;
 
             if (canSpecialJump && JumpState == NsmbJumpState.Single) {
                 JumpState = NsmbJumpState.Double;
@@ -638,6 +816,7 @@ namespace NsmbDs {
             }
 
             VelocityY = newY;
+            tookOff = true;
         }
 
         private void StepSwimming() {
@@ -653,8 +832,9 @@ namespace NsmbDs {
             Turnaround = false;
             JumpState = NsmbJumpState.None;
 
-            if (jumpBufferFrames > 0) {
+            if (Pressed(input.Jump, previousInput.Jump)) {
                 VelocityY += tuning.swimJumpVelocity;
+                tookOff = true;
                 Grounded = false;
                 jumpBufferFrames = 0;
                 Crouching = false;
@@ -663,7 +843,21 @@ namespace NsmbDs {
         }
 
         private void StepWallslide() {
+            if (walljumpPending) {
+                walljumpPending = false;
+                PerformWalljump();
+                return;
+            }
+
             if (Groundpounding || Crouching || Underwater) {
+                return;
+            }
+
+            // The game takes the jump a frame after the press.
+            if (Wallsliding && Pressed(input.Jump, previousInput.Jump)) {
+                walljumpPending = true;
+                VelocityY = 0f;
+                tookOff = true;
                 return;
             }
 
@@ -692,19 +886,7 @@ namespace NsmbDs {
             if (Wallsliding) {
                 VelocityX = Math.Max(-0.25f, Math.Min(0.25f, VelocityX));
                 FacingRight = WallslideLeft;
-                if (jumpBufferFrames > 0 && walljumpFrames == 0) {
-                    VelocityX = tuning.walljumpHorizontalVelocity * (WallslideLeft ? 1 : -1);
-                    VelocityY = tuning.walljumpVerticalVelocity;
-                    JumpState = NsmbJumpState.Single;
-                    Grounded = false;
-                    walljumpFrames = tuning.walljumpFrames;
-                    WallslideRight = false;
-                    WallslideLeft = false;
-                    wallslideEndFrames = 0;
-                    jumpBufferFrames = 0;
-                    Walljumped();
-                }
-            } else if (TouchingLeftWall || TouchingRightWall) {
+            } else if ((TouchingLeftWall || TouchingRightWall) && !WallIsPipe(wall)) {
                 bool canWallslide = VelocityY < -0.1f && !Grounded && !Sliding && walljumpFrames == 0 && wallslideEndFrames == 0;
                 if (!canWallslide || (wall == 1) != FacingRight) {
                     return;
@@ -714,6 +896,27 @@ namespace NsmbDs {
                 WallslideLeft = wall == -1 && TouchingLeftWall;
                 wallslideEndFrames = 0;
             }
+        }
+
+        private void PerformWalljump() {
+            VelocityX = tuning.walljumpHorizontalVelocity * (WallslideLeft ? 1 : -1);
+            FacingRight = WallslideLeft;
+            VelocityY = tuning.walljumpVerticalVelocity;
+            JumpState = NsmbJumpState.Single;
+            Grounded = false;
+            tookOff = true;
+            jumpHeldSinceTakeoff = true;
+            walljumpLocked = true;
+            WallslideRight = false;
+            WallslideLeft = false;
+            wallslideEndFrames = 0;
+            Walljumped();
+        }
+
+        // Pipes cannot be slid down.
+        private bool WallIsPipe(int wall) {
+            float x = X + (wall > 0 ? tuning.halfWidth + tuning.wallProbe : -tuning.sideLeft - tuning.wallProbe);
+            return tiles.GetTileAt(x, Y - tuning.sideHigh).IsPipe;
         }
 
         private void StepWallslideStopChecks(int wall) {
@@ -742,20 +945,31 @@ namespace NsmbDs {
             }
 
             if (Grounded && !Underwater) {
-                gravity = accelerations[0];
+                gravity = 0f;
                 return;
             }
 
-            if ((Groundpounding && !Underwater) || Grounded || coyoteTimeFrames > 0) {
+            if (Groundpounding && !Underwater) {
                 gravity = groundpoundStartFrames > 0 ? tuning.gravityGroundpoundStart : accelerations[accelerations.Length - 1];
                 return;
             }
 
-            int stage = GravityStage();
-            gravity = accelerations[stage];
-            if (stage == 0 && !input.Jump) {
-                gravity = accelerations[accelerations.Length - 1];
+            if (!input.Jump) {
+                jumpHeldSinceTakeoff = false;
             }
+
+            float pull = tuning.gravityPx;
+            float speedY = SpeedY;
+            if (speedY < 0f) {
+                if (jumpHeldSinceTakeoff && -speedY > tuning.heldFastAbove) {
+                    pull = tuning.gravityRisingHeld;
+                } else if (jumpHeldSinceTakeoff && -speedY > tuning.heldMidAbove) {
+                    pull = tuning.gravityRisingMid;
+                }
+            } else if (speedY < tuning.fallSlowBelow) {
+                pull = tuning.gravityFalling;
+            }
+            gravity = -pull / PixelsPerFrame / StepSeconds;
         }
 
         private void StepTerminalVelocity() {
@@ -797,7 +1011,11 @@ namespace NsmbDs {
             WasGrounded = Grounded;
             MoveX();
             MoveY();
-            TouchingLeftWall = WallAt(X - tuning.halfWidth - tuning.wallProbe);
+            if (stopAfterMove) {
+                VelocityX = 0f;
+                stopAfterMove = false;
+            }
+            TouchingLeftWall = WallAt(X - tuning.sideLeft - tuning.wallProbe);
             TouchingRightWall = WallAt(X + tuning.halfWidth + tuning.wallProbe);
             UpdateFloor();
             UpdateLiquid();
@@ -814,10 +1032,14 @@ namespace NsmbDs {
             }
 
             bool wasUnderwater = Underwater;
-            Underwater = Y - tuning.liquidBodyCenter >= LiquidSurfaceY;
+            Underwater = Y - (wasUnderwater ? 0f : tuning.liquidBodyCenter) >= LiquidSurfaceY;
             if (Underwater && !wasUnderwater && VelocityY < tuning.liquidEntrySpeedLimit) {
                 VelocityY = tuning.liquidEntrySpeed;
                 liquidEntryLeft = tuning.liquidEntryFrames;
+            }
+            if (Underwater && !wasUnderwater) {
+                float limit = tuning.swimMaxVelocity[tuning.swimMaxVelocity.Length - 1];
+                VelocityX = Math.Max(-limit, Math.Min(limit, VelocityX));
             }
         }
 
@@ -832,28 +1054,38 @@ namespace NsmbDs {
         }
 
         private void MoveX() {
-            float speed = SpeedX;
+            // Speed runs along the slope, so less of it goes sideways.
+            float along = Grounded && FloorAngle != 0f ? (float) Math.Cos(FloorAngle * Math.PI / 180f) : 1f;
+            float speed = SpeedX * along;
+            float before = X;
             X += speed;
             if (speed == 0f) {
                 return;
             }
 
-            float edge = X + (speed > 0f ? tuning.halfWidth : -tuning.halfWidth);
+            float edge = X + (speed > 0f ? tuning.halfWidth : -tuning.sideLeft);
             if (!WallAt(edge)) {
                 return;
             }
 
             float column = (float) Math.Floor(edge / NsmbTileSource.TileSize) * NsmbTileSource.TileSize;
-            X = speed > 0f ? column - tuning.halfWidth : column + NsmbTileSource.TileSize + tuning.halfWidth;
-            VelocityX = 0f;
+            float clear = speed > 0f ? column - tuning.halfWidth : column + NsmbTileSource.TileSize + tuning.sideLeft;
+
+            // Already inside the wall, as after rising into a block's side: pushed out over a few frames.
+            bool wasInside = speed > 0f ? before > clear : before < clear;
+            if (wasInside) {
+                X = before + Math.Max(-tuning.wallPushSpeed, Math.Min(tuning.wallPushSpeed, clear - before));
+            } else {
+                // In the air the step is cancelled; on the ground Mario ends up against the wall.
+                X = Grounded ? clear : before;
+            }
+            VelocityX = Grounded ? 0f : Math.Sign(speed) * tuning.startAcceleration / PixelsPerFrame;
         }
 
         private bool WallAt(float x) {
-            float lowest = Y - (Grounded ? tuning.groundSnap : 2f);
-            float height = BodyHeight;
-            return tiles.GetTileAt(x, lowest).IsFullSolid
-                || tiles.GetTileAt(x, Y - (height / 2f)).IsFullSolid
-                || tiles.GetTileAt(x, Y - height + 1f).IsFullSolid;
+            float scale = BodyHeight / tuning.height;
+            bool lowSensor = !(Grounded && FloorAngle != 0f) && tiles.GetTileAt(x, Y - (tuning.sideLow * scale)).IsFullSolid;
+            return lowSensor || tiles.GetTileAt(x, Y - (tuning.sideHigh * scale)).IsFullSolid;
         }
 
         private void MoveY() {
@@ -865,9 +1097,11 @@ namespace NsmbDs {
                     return;
                 }
 
+                // The ground press carries over for a frame, then Mario floats briefly.
                 Grounded = false;
-                VelocityY = 0f;
-                hoverFrames = tuning.hoverFrames;
+                Y += tuning.ledgeDrop;
+                VelocityY = tuning.ledgeHoverSpeed;
+                hoverFrames = tuning.ledgeHoverFrames;
                 return;
             }
 
@@ -896,7 +1130,7 @@ namespace NsmbDs {
             int row = (int) Math.Floor(head / NsmbTileSource.TileSize);
 
             // The column under the middle of the head counts first, as that is the block the player sees being hit.
-            foreach (float bodyX in new[] { X, X - tuning.halfWidth + 1f, X + tuning.halfWidth - 1f }) {
+            foreach (float bodyX in new[] { X + tuning.headRight, X + tuning.headLeft }) {
                 NsmbTileBehavior tile = tiles.GetTileAt(bodyX, head);
                 if (tile.IsFullSolid || tile.IsFlippedSlope || tile.IsHidden) {
                     Y = (row * (float) NsmbTileSource.TileSize) + NsmbTileSource.TileSize + height;
@@ -915,8 +1149,8 @@ namespace NsmbDs {
                 return best;
             }
 
-            best = Math.Min(best, SurfaceBelow(X - tuning.halfWidth + 1f, fromY, toY, false, out _));
-            return Math.Min(best, SurfaceBelow(X + tuning.halfWidth - 1f, fromY, toY, false, out _));
+            best = Math.Min(best, SurfaceBelow(X + tuning.feetLeft, fromY, toY, false, out _));
+            return Math.Min(best, SurfaceBelow(X + tuning.feetRight, fromY, toY, false, out _));
         }
 
         private float SurfaceBelow(float x, float fromY, float toY, bool usesSlopes, out bool onSlope) {
