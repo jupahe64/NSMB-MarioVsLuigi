@@ -64,7 +64,7 @@ namespace NsmbRom.Tests {
             foreach (KeyValuePair<int, string> hub in PipeArt.HubFiles) {
                 hubs[hub.Key] = Nsbtx.Parse(rom.GetFileData("polygon_unit/" + hub.Value).ToArray());
             }
-            PipeArt pipes = new(Nsbtx.Parse(rom.GetFileData("polygon_unit/I_dokan.nsbtx").ToArray()), hubs);
+            PipeArt pipes = new(Nsbtx.Parse(rom.GetFileData("polygon_unit/I_dokan.nsbtx").ToArray()), hubs, Nsbtx.Parse(rom.GetFileData("polygon_unit/I_mamedokan.nsbtx").ToArray()));
 
             byte[]? green = pipes.GetTile(TilesetSlot.Common, 0x9E, 0x01010004);
             byte[]? greenSolidVariant = pipes.GetTile(TilesetSlot.Common, 0x74, 0x01010024);
@@ -76,6 +76,7 @@ namespace NsmbRom.Tests {
             Assert.NotEqual(green, red);
             Assert.NotNull(pipes.GetTile(TilesetSlot.Common, 0x7C, 0x0101003F));
             Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x95, 0x0101003F));
+            Assert.NotNull(pipes.GetTile(TilesetSlot.Common, 0x7E, 0x0101001C));
             Assert.Null(pipes.GetTile(TilesetSlot.Common, 0x20, 0x00010000));
             Assert.NotEqual(pipes.GetTile(TilesetSlot.Common, 0x78, 0x01010026), pipes.GetTile(TilesetSlot.Common, 0x88, 0x01010026));
         }

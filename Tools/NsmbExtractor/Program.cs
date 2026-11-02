@@ -20,6 +20,8 @@ namespace NsmbExtractor {
               NsmbExtractor census <rom.nds> [outFile]
               NsmbExtractor verify <usa.nds> <eu.nds>
               NsmbExtractor dump-textures <rom.nds> [outDir]
+              NsmbExtractor entrance-graph <rom.nds>
+              NsmbExtractor entrance-tiles <rom.nds>
             Default outDir: RomAnalysis/<rom name>/{fs,code,renders}, or Assets/NSMBDS/Extracted for extract
             """;
 
@@ -36,6 +38,8 @@ namespace NsmbExtractor {
                 ("render", 2 or 3) => RunGuarded(() => Extractor.Render(LoadGame(args[1]), OutDir(args, "renders"))),
                 ("census", 2 or 3) => RunGuarded(() => RunCensus(args)),
                 ("dump-textures", 2 or 3) => RunGuarded(() => Dumper.DumpTextures(LoadRom(args[1]), OutDir(args, "textures"))),
+                ("entrance-graph", 2) => RunGuarded(() => EntranceGraph.Check(LoadGame(args[1])) ? 0 : 1),
+                ("entrance-tiles", 2) => RunGuarded(() => EntranceGraph.Surroundings(LoadGame(args[1]), Console.Out)),
                 ("verify", 3) => RunGuarded(() => RegionVerifier.Report(LoadGame(args[1]), LoadGame(args[2]))),
                 _ => PrintUsage(),
             };

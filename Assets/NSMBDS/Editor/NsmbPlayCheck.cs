@@ -12,9 +12,12 @@ namespace NsmbDs.Editor {
         private const string Output = "RomAnalysis/unity_check";
         private const int Width = 512;
         private const int Height = 384;
+        private const double StepSeconds = 2.5;
+        private const float CloseUpSize = 0.5f;
 
-        private static int waitFrames;
+        private static double nextStepTime;
         private static int step;
+        private static float startX;
 
         static NsmbPlayCheck() {
             if (SessionState.GetBool(ActiveKey, false)) {
@@ -30,10 +33,10 @@ namespace NsmbDs.Editor {
         }
 
         private static void Tick() {
-            if (!EditorApplication.isPlaying || ++waitFrames < 30) {
+            if (!EditorApplication.isPlaying || EditorApplication.timeSinceStartup < nextStepTime) {
                 return;
             }
-            waitFrames = 0;
+            nextStepTime = EditorApplication.timeSinceStartup + StepSeconds;
 
             NsmbDebugSelect select = Object.FindAnyObjectByType<NsmbDebugSelect>();
             if (step > 0 && select.Current == null) {
@@ -57,11 +60,40 @@ namespace NsmbDs.Editor {
                 break;
             case 3:
                 Debug.Log($"[NSMBDS] Play check: switched to {select.Current?.areaName}, area objects {Object.FindObjectsByType<NsmbArea>(FindObjectsSortMode.None).Length}");
+                Debug.Log($"[NSMBDS] Play check: player at {select.Player?.X}, {select.Player?.Y}, grounded {select.Player?.Grounded}, tile 0x{select.Player?.TileUnderFeet:X8}");
                 Capture("play_A01_1");
                 select.Current.SetBehaviorOverlay(true);
                 break;
             case 4:
                 Capture("play_A01_1_overlay");
+                select.Current.SetBehaviorOverlay(false);
+                startX = select.Player.X;
+                select.Player.ScriptedInput = new NsmbPlayerInput { Right = true };
+                break;
+            case 5:
+                Debug.Log($"[NSMBDS] Play check: walked from {startX} to {select.Player.X}, speed {select.Player.SpeedX}, grounded {select.Player.Grounded}");
+                Capture("play_A01_1_walked");
+                CaptureCloseUp("play_mario_walking", select.Player);
+                select.Player.ScriptedInput = default(NsmbPlayerInput);
+                select.Player.Teleport(2368f, 400f);
+                break;
+            case 6:
+                Debug.Log($"[NSMBDS] Play check: dropped on pipe, at {select.Player.X}, {select.Player.Y}, grounded {select.Player.Grounded}, tile 0x{select.Player.TileUnderFeet:X8}");
+                Capture("play_pipe_top");
+                CaptureCloseUp("play_mario_standing", select.Player);
+                select.Player.ScriptedInput = new NsmbPlayerInput { Down = true };
+                break;
+            case 7:
+                Debug.Log($"[NSMBDS] Play check: pressed down, in warp {select.Player.InWarp}, area {select.Player.AreaName}");
+                break;
+            case 8:
+                select.Player.ScriptedInput = default(NsmbPlayerInput);
+                Debug.Log($"[NSMBDS] Play check: after pipe, area {select.Player.AreaName}, at {select.Player.X}, {select.Player.Y}, camera {Camera.main.transform.position}, size {Camera.main.orthographicSize}, player transform {select.Player.transform.position}");
+                foreach (NsmbRegionMarker region in select.Current.GetComponentsInChildren<NsmbRegionMarker>()) {
+                    Debug.Log($"[NSMBDS] Play check: region zone={region.isZone} {region.WorldRect}");
+                }
+                Debug.Log($"[NSMBDS] Play check: tilemap bounds {select.Current.tilemap.cellBounds}, tile at feet 0x{select.Player.TileUnderFeet:X8}, renderer on {select.Current.tilemap.GetComponent<UnityEngine.Tilemaps.TilemapRenderer>().enabled}");
+                Capture("play_after_pipe");
                 SessionState.SetBool(ActiveKey, false);
                 EditorApplication.update -= Tick;
                 EditorApplication.Exit(0);
@@ -78,6 +110,17 @@ namespace NsmbDs.Editor {
                 }
             }
             Debug.Log($"[NSMBDS] Play check: {index.entries.Count} areas, {missing} scenes missing");
+        }
+
+        private static void CaptureCloseUp(string name, NsmbPlayer player) {
+            Camera camera = Camera.main;
+            Vector3 position = camera.transform.position;
+            float size = camera.orthographicSize;
+            camera.transform.position = new Vector3(player.transform.position.x, player.transform.position.y + 0.25f, position.z);
+            camera.orthographicSize = CloseUpSize;
+            Capture(name);
+            camera.transform.position = position;
+            camera.orthographicSize = size;
         }
 
         private static void Capture(string name) {

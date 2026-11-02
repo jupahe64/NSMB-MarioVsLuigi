@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NsmbRom\NsmbRom.csproj" />
+    <Compile Include="..\..\Assets\NSMBDS\Runtime\Physics\*.cs" LinkBase="Physics" />
   </ItemGroup>
 
 </Project>

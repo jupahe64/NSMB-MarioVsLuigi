@@ -136,6 +136,94 @@ namespace NsmbExtractor {
         }
     }
 
+    /// <summary>Checks that every enterable entrance leads to an area and entrance that exist.</summary>
+    public static class EntranceGraph {
+        private const int ExitOnly = 0x80;
+        private const int ConnectedSetting = 0x08;
+
+        public static bool Check(NsmbGame game) {
+            int checkedLinks = 0;
+            List<string> broken = new();
+            foreach (string name in game.AreaNames) {
+                LevelArea area = game.LoadArea(name);
+                foreach (LevelEntrance entrance in area.Entrances) {
+                    bool isWarp = entrance.Type is 2 or (>= 3 and <= 6) or (>= 16 and <= 19) or (>= 22 and <= 25);
+                    if (!isWarp || (entrance.Settings & ExitOnly) != 0) {
+                        continue;
+                    }
+
+                    checkedLinks++;
+                    // Connected pipes pair up by number instead of using the destination fields.
+                    if ((entrance.Settings & ConnectedSetting) != 0) {
+                        int partners = area.Entrances.Count(e => e != entrance && (e.Settings & ConnectedSetting) != 0 && e.ConnectedPipe == entrance.ConnectedPipe);
+                        if (partners != 1) {
+                            broken.Add($"{name} entrance {entrance.Number}: connected pipe {entrance.ConnectedPipe} has {partners} partners");
+                        }
+                        continue;
+                    }
+
+                    // Destination area 0 means the same area.
+                    string target = entrance.DestArea == 0 ? name : $"{name.Substring(0, 4)}{entrance.DestArea}";
+                    if (!game.AreaNames.Contains(target)) {
+                        broken.Add($"{name} entrance {entrance.Number}: no area {target}");
+                    } else if (game.LoadArea(target).Entrances.All(e => e.Number != entrance.DestEntrance)) {
+                        broken.Add($"{name} entrance {entrance.Number}: {target} has no entrance {entrance.DestEntrance}");
+                    }
+                }
+            }
+
+            Console.WriteLine($"Checked {checkedLinks} warps, {broken.Count} broken");
+            foreach (string line in broken) {
+                Console.WriteLine("  " + line);
+            }
+            return broken.Count == 0;
+        }
+
+        /// <summary>Prints the tiles around each warp: # solid, P pipe or door, o entrance cell, and nearby sprites.</summary>
+        public static void Surroundings(NsmbGame game, TextWriter output) {
+            const int Reach = 4;
+            const uint SolidFlag = 0x00010000;
+            const uint PipeFlag = 0x01000000;
+            const int SpriteReach = 64;
+
+            foreach (string name in game.AreaNames) {
+                LevelArea area = game.LoadArea(name);
+                AreaTilesets tilesets = game.GetTilesets(area);
+                LevelGrid grid = game.ExpandArea(area, tilesets);
+                foreach (LevelEntrance entrance in area.Entrances) {
+                    if (entrance.Type is not (2 or (>= 3 and <= 6) or 13 or 14 or 15 or (>= 16 and <= 19) or (>= 22 and <= 25))) {
+                        continue;
+                    }
+
+                    output.WriteLine($"{name} e{entrance.Number} type {entrance.Type} at {entrance.X},{entrance.Y} settings 0x{entrance.Settings:X2}");
+                    int column = entrance.X / 16;
+                    int row = entrance.Y / 16;
+                    for (int y = Math.Max(row - Reach, 0); y <= row + Reach; y++) {
+                        char[] line = new char[(2 * Reach) + 1];
+                        for (int x = column - Reach; x <= column + Reach; x++) {
+                            uint word = 0;
+                            if (x >= 0 && x < LevelGrid.Width && y < LevelGrid.Height) {
+                                ushort cell = grid.Cells[(y * LevelGrid.Width) + x];
+                                TilesetSlot slot = LevelGrid.SplitCell(cell, out int tile);
+                                if (cell != 0 && tile < tilesets[slot].Behaviors.Length) {
+                                    word = tilesets[slot].Behaviors[tile];
+                                }
+                            }
+                            char mark = (word & PipeFlag) != 0 ? 'P' : (word & SolidFlag) != 0 ? '#' : '.';
+                            line[x - column + Reach] = x == column && y == row ? (mark == '.' ? 'o' : char.ToLowerInvariant(mark == '#' ? 'x' : 'p')) : mark;
+                        }
+                        output.WriteLine("  " + new string(line));
+                    }
+                    foreach (LevelSprite sprite in area.Sprites) {
+                        if (Math.Abs((sprite.X * 16) - entrance.X) <= SpriteReach && Math.Abs((sprite.Y * 16) - entrance.Y) <= SpriteReach) {
+                            output.WriteLine($"  sprite {sprite.Type} at {sprite.X},{sprite.Y}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// <summary>Usage counts across all areas; this decides the implementation order of actors and tile logic.</summary>
     public static class Census {
         public static void Write(NsmbGame game, string outPath) {

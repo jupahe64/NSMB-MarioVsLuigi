@@ -128,7 +128,8 @@ namespace NsmbRom.Nsmb {
             int variant = GetCommonVariant(area.BackgroundScreen);
             pipeArt ??= new PipeArt(
                 Nsbtx.Parse(ReadPlain(Named("I_dokan.nsbtx"))),
-                PipeArt.HubFiles.ToDictionary(hub => hub.Key, hub => Nsbtx.Parse(ReadPlain(Named(hub.Value)))));
+                PipeArt.HubFiles.ToDictionary(hub => hub.Key, hub => Nsbtx.Parse(ReadPlain(Named(hub.Value)))),
+                Nsbtx.Parse(ReadPlain(Named("I_mamedokan.nsbtx"))));
             return new AreaTilesets(GetCommonTileset(variant), variant, GetLevelTileset(area.Settings.Tileset), GetSubTileset(), pipeArt);
         }
 

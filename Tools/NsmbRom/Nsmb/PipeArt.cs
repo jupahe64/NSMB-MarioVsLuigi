@@ -29,6 +29,22 @@ namespace NsmbRom.Nsmb {
             [0x0B] = "I_do_yoko_rd",
             [0x0C] = "I_do_yoko_u",
             [0x0D] = "I_do_yoko_d",
+            [0x11] = "I_do_hahen_l",
+            [0x13] = "I_do_hahen_r",
+            [0x15] = "I_do_hahen_ld",
+            [0x17] = "I_do_hahen_rd",
+        };
+
+        // Mini pipes come from their own texture file, with one palette.
+        private static readonly Dictionary<int, string> MiniPieceTextures = new() {
+            [0x10] = "I_mamedokan_u",
+            [0x12] = "I_mamedokan_d",
+            [0x16] = "I_mamedokan_tt",
+            [0x18] = "I_mamedokan_l",
+            [0x1A] = "I_mamedokan_r",
+            [0x1C] = "I_mamedokan_tate",
+            [0x1D] = "I_mamedokan_yoko",
+            [0x1E] = "I_mamedokan_yt",
         };
 
         // Junctions share one behaviour per column or row, so only the common tile number tells their four corners apart.
@@ -54,8 +70,18 @@ namespace NsmbRom.Nsmb {
 
         private readonly Dictionary<int, byte[]> tiles = new();
         private readonly Dictionary<int, byte[]> junctions = new();
+        private readonly Dictionary<int, byte[]> miniTiles = new();
 
-        public PipeArt(Nsbtx textures, IReadOnlyDictionary<int, Nsbtx> hubs) {
+        public PipeArt(Nsbtx textures, IReadOnlyDictionary<int, Nsbtx> hubs, Nsbtx miniPipes) {
+            foreach (NsbtxTexture texture in miniPipes.Textures) {
+                foreach (KeyValuePair<int, string> piece in MiniPieceTextures) {
+                    if (texture.Name == piece.Value) {
+                        miniTiles[piece.Key] = miniPipes.Decode(texture, miniPipes.Palettes[0])
+                            ?? throw new RomFormatException($"Mini pipe texture {texture.Name} uses an unsupported format.");
+                    }
+                }
+            }
+
             foreach (KeyValuePair<int, Nsbtx> hub in hubs) {
                 junctions[hub.Key] = hub.Value.Decode(hub.Value.Textures[0], hub.Value.Palettes[0])
                     ?? throw new RomFormatException("Pipe hub texture uses an unsupported format.");
@@ -95,6 +121,10 @@ namespace NsmbRom.Nsmb {
             if (slot == TilesetSlot.Common && junctions.TryGetValue(tile, out byte[]? junction)) {
                 return junction;
             }
+            if (miniTiles.TryGetValue((int) behavior & PieceMask, out byte[]? mini)) {
+                return mini;
+            }
+
             int code = (int) behavior & ((3 << ColorShift) | PieceMask);
             return tiles.TryGetValue(code, out byte[]? art) ? art : null;
         }

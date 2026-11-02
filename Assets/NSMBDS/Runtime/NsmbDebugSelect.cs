@@ -16,6 +16,7 @@ namespace NsmbDs {
         private const float MaxOrthoSize = 30f;
         private const float ZoomStep = 1.2f;
         private const float PanelWidth = 220f;
+        private const string MarioPrefab = "NsmbMario";
 
         private readonly List<string> worlds = new();
         private NsmbAreaIndex index;
@@ -25,6 +26,8 @@ namespace NsmbDs {
         private string selectedWorld;
         private Vector2 scroll;
         private bool showPanel = true;
+        private NsmbPlayer player;
+        private NsmbAreaIndex.Entry currentEntry;
 
         private void Start() {
             view = Camera.main;
@@ -55,6 +58,9 @@ namespace NsmbDs {
             }
             if (keyboard.oKey.wasPressedThisFrame && current != null) {
                 current.SetBehaviorOverlay(!current.OverlayVisible);
+            }
+            if (player != null && player.enabled) {
+                return;
             }
 
             Vector3 move = Vector3.zero;
@@ -91,7 +97,7 @@ namespace NsmbDs {
 
             GUILayout.BeginArea(new Rect(8f, 8f, PanelWidth, Screen.height - 16f), GUI.skin.box);
             GUILayout.Label(current != null ? current.areaName : "Pick an area");
-            GUILayout.Label("Tab panel, WASD move, O behaviour overlay");
+            GUILayout.Label("Tab panel, O behaviour overlay");
 
             GUILayout.BeginHorizontal();
             foreach (string world in worlds) {
@@ -113,8 +119,27 @@ namespace NsmbDs {
 
         public NsmbArea Current => current;
 
+        public NsmbPlayer Player => player;
+
         public void LoadArea(NsmbAreaIndex.Entry entry) {
-            StartCoroutine(SwitchArea(entry));
+            StartCoroutine(SwitchArea(entry, -1));
+        }
+
+        // Pipes and doors name an area of the same course.
+        private void Travel(int destArea, int destEntrance) {
+            // Destination area 0 means the same area.
+            if (destArea == 0) {
+                player.EnterArea(current, destEntrance);
+                return;
+            }
+
+            foreach (NsmbAreaIndex.Entry entry in index.entries) {
+                if (entry.world == currentEntry.world && entry.level == currentEntry.level && entry.area == destArea) {
+                    StartCoroutine(SwitchArea(entry, destEntrance));
+                    return;
+                }
+            }
+            Debug.LogWarning($"[NSMBDS] {currentEntry.name} has no area {destArea}.");
         }
 
         public NsmbAreaIndex.Entry? FindEntry(string areaName) {
@@ -126,7 +151,11 @@ namespace NsmbDs {
             return null;
         }
 
-        private IEnumerator SwitchArea(NsmbAreaIndex.Entry entry) {
+        private IEnumerator SwitchArea(NsmbAreaIndex.Entry entry, int entrance) {
+            currentEntry = entry;
+            if (player != null) {
+                player.LeaveArea();
+            }
             if (loadedScene.IsValid()) {
                 current = null;
                 yield return SceneManager.UnloadSceneAsync(loadedScene);
@@ -150,10 +179,19 @@ namespace NsmbDs {
                 yield break;
             }
 
-            NsmbEntranceMarker start = current.FindEntrance(current.startEntrance);
-            Vector3 focus = start != null ? start.transform.position : Vector3.zero;
-            view.transform.position = new Vector3(focus.x + 1f, focus.y + 0.5f, view.transform.position.z);
-            view.orthographicSize = DefaultOrthoSize;
+            if (player == null) {
+                player = CreatePlayer();
+                player.TravelRequested += Travel;
+            }
+            player.EnterArea(current, entrance >= 0 ? entrance : current.startEntrance);
+        }
+
+        private static NsmbPlayer CreatePlayer() {
+            GameObject mario = Instantiate(Resources.Load<GameObject>(MarioPrefab));
+            mario.name = "Mario";
+            NsmbPlayer player = mario.AddComponent<NsmbPlayer>();
+            mario.AddComponent<NsmbPlayerAnimator>();
+            return player;
         }
     }
 }
